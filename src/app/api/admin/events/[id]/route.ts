@@ -4,16 +4,13 @@ import { prisma } from '@/lib/prisma';
 import { eventSchema } from '@/lib/validations';
 import { ZodError } from 'zod';
 
-// Middleware to check authentication
 async function checkAuth() {
   const session = await auth();
-  if (!session) {
-    return null;
-  }
+  if (!session) return null;
   return session;
 }
 
-// PUT: Update event
+// PUT: Full event update
 export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -21,31 +18,20 @@ export async function PUT(
   try {
     const session = await checkAuth();
     if (!session) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { id } = params;
     const body = await request.json();
-
-    // Validate request body
     const validatedData = eventSchema.parse(body);
 
-    // Check event exists
-    const event = await prisma.event.findUnique({
-      where: { id },
-    });
-
+    const event = await prisma.event.findUnique({ where: { id } });
     if (!event) {
-      return NextResponse.json(
-        { error: 'Event not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Event not found' }, { status: 404 });
     }
 
-    // Update event
+    // FIX: Pass price directly — Prisma handles Decimal conversion automatically.
+    // The previous `new (require(...).Decimal)(...)` pattern crashes in Next.js.
     const updatedEvent = await prisma.event.update({
       where: { id },
       data: {
@@ -57,9 +43,7 @@ export async function PUT(
         endDate: validatedData.endDate,
         registrationOpen: validatedData.registrationOpen,
         registrationClose: validatedData.registrationClose,
-        price: new (require('@prisma/client/runtime/library').Decimal)(
-          validatedData.price.toString()
-        ),
+        price: validatedData.price,
         currency: validatedData.currency,
         maxCapacity: validatedData.maxCapacity,
         location: validatedData.location,
@@ -76,16 +60,12 @@ export async function PUT(
         { status: 400 }
       );
     }
-
     console.error('Event update error:', error);
-    return NextResponse.json(
-      { error: 'Failed to update event' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to update event' }, { status: 500 });
   }
 }
 
-// DELETE: Soft delete event
+// DELETE: Soft delete (sets isActive to false)
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -93,40 +73,24 @@ export async function DELETE(
   try {
     const session = await checkAuth();
     if (!session) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { id } = params;
 
-    // Check event exists
-    const event = await prisma.event.findUnique({
-      where: { id },
-    });
-
+    const event = await prisma.event.findUnique({ where: { id } });
     if (!event) {
-      return NextResponse.json(
-        { error: 'Event not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Event not found' }, { status: 404 });
     }
 
-    // Soft delete by setting isActive to false
     const deletedEvent = await prisma.event.update({
       where: { id },
-      data: {
-        isActive: false,
-      },
+      data: { isActive: false },
     });
 
     return NextResponse.json(deletedEvent);
   } catch (error) {
     console.error('Event deletion error:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete event' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to delete event' }, { status: 500 });
   }
 }

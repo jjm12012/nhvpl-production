@@ -4,12 +4,9 @@ import { eventSchema } from '@/lib/validations';
 import { ZodError } from 'zod';
 import { auth } from '@/auth';
 
-// Middleware to check authentication
 async function checkAuth() {
   const session = await auth();
-  if (!session) {
-    return null;
-  }
+  if (!session) return null;
   return session;
 }
 
@@ -18,25 +15,18 @@ export async function GET(request: NextRequest) {
   try {
     const session = await checkAuth();
     if (!session) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const events = await prisma.event.findMany({
-      orderBy: {
-        startDate: 'desc',
-      },
+      orderBy: { startDate: 'desc' },
+      include: { _count: { select: { registrations: true } } },
     });
 
     return NextResponse.json(events);
   } catch (error) {
     console.error('Error fetching events:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch events' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch events' }, { status: 500 });
   }
 }
 
@@ -45,18 +35,14 @@ export async function POST(request: NextRequest) {
   try {
     const session = await checkAuth();
     if (!session) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await request.json();
-
-    // Validate request body
     const validatedData = eventSchema.parse(body);
 
-    // Create event
+    // FIX: Pass price directly — Prisma handles Decimal conversion automatically.
+    // The previous `new (require(...).Decimal)(...)` pattern crashes in Next.js.
     const event = await prisma.event.create({
       data: {
         name: validatedData.name,
@@ -67,9 +53,7 @@ export async function POST(request: NextRequest) {
         endDate: validatedData.endDate,
         registrationOpen: validatedData.registrationOpen,
         registrationClose: validatedData.registrationClose,
-        price: new (require('@prisma/client/runtime/library').Decimal)(
-          validatedData.price.toString()
-        ),
+        price: validatedData.price,
         currency: validatedData.currency,
         maxCapacity: validatedData.maxCapacity,
         location: validatedData.location,
@@ -86,11 +70,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-
     console.error('Event creation error:', error);
-    return NextResponse.json(
-      { error: 'Failed to create event' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to create event' }, { status: 500 });
   }
 }
