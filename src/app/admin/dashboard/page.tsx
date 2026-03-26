@@ -4,56 +4,60 @@ import { formatCurrency, formatDate } from '@/lib/utils';
 import DivisionChart from '@/components/DivisionChart';
 import ClearTestDataButton from '@/components/ClearTestDataButton';
 
+// FIX: force dynamic so dashboard always shows live data
+export const dynamic = 'force-dynamic';
+
 async function getDashboardStats() {
   try {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-    const [totalPaid, totalRevenue, activeEvent, todayCount, divisionBreakdown, recentRegistrations] = await Promise.all([
-      // Total paid registrations
-      prisma.registration.count({
-        where: { paymentStatus: 'PAID' },
-      }),
+    const [totalPaid, totalRevenue, activeEvent, todayCount, divisionBreakdown, recentRegistrations] =
+      await Promise.all([
+        // Total paid registrations
+        prisma.registration.count({
+          where: { paymentStatus: 'PAID' },
+        }),
 
-      // Total revenue
-      prisma.registration.aggregate({
-        where: { paymentStatus: 'PAID' },
-        _sum: { amountPaid: true },
-      }),
+        // Total revenue
+        prisma.registration.aggregate({
+          where: { paymentStatus: 'PAID' },
+          _sum: { amountPaid: true },
+        }),
 
-      // Get active event
-      prisma.event.findFirst({
-        where: {
-          isActive: true,
-          registrationOpen: { lte: now },
-          registrationClose: { gte: now },
-        },
-        orderBy: { startDate: 'asc' },
-      }),
+        // Get active event
+        prisma.event.findFirst({
+          where: {
+            isActive: true,
+            registrationOpen: { lte: now },
+            registrationClose: { gte: now },
+          },
+          orderBy: { startDate: 'asc' },
+        }),
 
-      // Registrations today
-      prisma.registration.count({
-        where: {
-          paymentStatus: 'PAID',
-          createdAt: { gte: today },
-        },
-      }),
+        // Registrations today
+        prisma.registration.count({
+          where: {
+            paymentStatus: 'PAID',
+            createdAt: { gte: today },
+          },
+        }),
 
-      // Division breakdown
-      prisma.registration.groupBy({
-        by: ['division'],
-        where: { paymentStatus: 'PAID' },
-        _count: true,
-      }),
+        // Division breakdown
+        prisma.registration.groupBy({
+          by: ['division'],
+          where: { paymentStatus: 'PAID' },
+          _count: true,
+        }),
 
-      // Recent registrations
-      prisma.registration.findMany({
-        where: { paymentStatus: 'PAID' },
-        include: { event: true },
-        orderBy: { createdAt: 'desc' },
-        take: 10,
-      }),
-    ]);
+        // Recent registrations
+        prisma.registration.findMany({
+          where: { paymentStatus: 'PAID' },
+          include: { event: true },
+          orderBy: { createdAt: 'desc' },
+          take: 10,
+        }),
+      ]);
 
     const spotsRemaining = activeEvent
       ? Math.max(0, (activeEvent.maxCapacity || 0) - totalPaid)
@@ -162,7 +166,6 @@ export default async function DashboardPage() {
             <Award className="w-5 h-5 text-primary-600" />
             Division Breakdown
           </h3>
-
           <DivisionChart data={stats.divisionData} />
         </div>
 
@@ -173,7 +176,9 @@ export default async function DashboardPage() {
               <p className="text-sm text-gray-600 font-medium mb-1">{division.name}</p>
               <p className="text-2xl font-bold text-gray-900">{division.count}</p>
               <p className="text-xs text-gray-500 mt-1">
-                {stats.totalPaid > 0 ? ((division.count / stats.totalPaid) * 100).toFixed(1) : '0.0'}% of total
+                {stats.totalPaid > 0
+                  ? ((division.count / stats.totalPaid) * 100).toFixed(1)
+                  : '0.0'}% of total
               </p>
             </div>
           ))}
@@ -185,7 +190,6 @@ export default async function DashboardPage() {
         <div className="p-6 border-b border-gray-200">
           <h3 className="text-lg font-bold text-gray-900">Recent Registrations</h3>
         </div>
-
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-200">

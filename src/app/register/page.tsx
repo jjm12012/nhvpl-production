@@ -3,6 +3,9 @@ import { ArrowRight } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 import { formatDate, formatCurrency, spotsRemaining } from '@/lib/utils';
 
+// FIX: force dynamic so registration page always shows live event data
+export const dynamic = 'force-dynamic';
+
 async function getActiveEvents() {
   try {
     const events = await prisma.event.findMany({
@@ -30,7 +33,6 @@ async function getActiveEvents() {
         startDate: 'asc',
       },
     });
-
     return events;
   } catch (error) {
     console.error('Failed to fetch events:', error);
@@ -47,7 +49,7 @@ export default async function EventSelectionPage() {
       <header className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <Link href="/" className="text-primary-600 hover:text-primary-700 font-medium">
-            ← Back to Home
+            &larr; Back to Home
           </Link>
         </div>
       </header>
@@ -57,7 +59,7 @@ export default async function EventSelectionPage() {
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Select an Event</h1>
           <p className="text-lg text-gray-600">
-            Choose which event you'd like to register for.
+            Choose which event you&apos;d like to register for.
           </p>
         </div>
 
@@ -99,21 +101,18 @@ export default async function EventSelectionPage() {
                           {formatDate(event.startDate)} — {formatDate(event.endDate)}
                         </p>
                       </div>
-
                       {event.location && (
                         <div>
                           <p className="text-sm text-gray-600 font-medium">Location</p>
                           <p className="text-gray-900">{event.location}</p>
                         </div>
                       )}
-
                       {event.dayOfWeek && (
                         <div>
                           <p className="text-sm text-gray-600 font-medium">Day & Time</p>
                           <p className="text-gray-900">{event.dayOfWeek}</p>
                         </div>
                       )}
-
                       <div className="pt-4 border-t border-gray-200">
                         <div className="flex items-baseline justify-between">
                           <span className="text-sm text-gray-600 font-medium">Price</span>
@@ -122,18 +121,18 @@ export default async function EventSelectionPage() {
                           </span>
                         </div>
                       </div>
-
                       {remaining !== null && (
-                        <div className={`p-3 rounded-lg ${
-                          isFull
-                            ? 'bg-red-50 text-red-700'
-                            : 'bg-primary-50 text-primary-700'
-                        }`}>
+                        <div
+                          className={`p-3 rounded-lg ${
+                            isFull
+                              ? 'bg-red-50 text-red-700'
+                              : 'bg-primary-50 text-primary-700'
+                          }`}
+                        >
                           <p className="text-sm font-medium">
                             {isFull
                               ? 'Event Full'
-                              : `${remaining} spot${remaining !== 1 ? 's' : ''} remaining`
-                            }
+                              : `${remaining} spot${remaining !== 1 ? 's' : ''} remaining`}
                           </p>
                         </div>
                       )}
@@ -166,7 +165,10 @@ export default async function EventSelectionPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <p className="text-gray-400 text-sm text-center">
             Need help? Email us at{' '}
-            <a href="mailto:nhvpickleball@gmail.com" className="text-primary-400 hover:text-primary-300">
+            <a
+              href="mailto:nhvpickleball@gmail.com"
+              className="text-primary-400 hover:text-primary-300"
+            >
               nhvpickleball@gmail.com
             </a>
           </p>
