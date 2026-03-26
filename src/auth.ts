@@ -1,12 +1,14 @@
-import NextAuth from 'next-auth';
-import Credentials from 'next-auth/providers/credentials';
-import { prisma } from '@/lib/prisma';
-import bcrypt from 'bcryptjs';
+// auth.ts — Full auth with Prisma + bcrypt (Node.js only)
+// Place this file at: src/auth.ts  — REPLACES your existing src/auth.ts
+
+import NextAuth from 'next-auth'
+import Credentials from 'next-auth/providers/credentials'
+import { prisma } from '@/lib/prisma'
+import bcrypt from 'bcryptjs'
+import { authConfig } from './auth.config'
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  pages: {
-    signIn: '/admin/login',
-  },
+  ...authConfig,
   providers: [
     Credentials({
       credentials: {
@@ -14,30 +16,30 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null;
+        if (!credentials?.email || !credentials?.password) return null
 
         try {
           const adminUser = await prisma.adminUser.findUnique({
             where: { email: credentials.email as string },
-          });
+          })
 
-          if (!adminUser) return null;
+          if (!adminUser) return null
 
           const isValid = await bcrypt.compare(
             credentials.password as string,
             adminUser.passwordHash
-          );
+          )
 
-          if (!isValid) return null;
+          if (!isValid) return null
 
           return {
             id: adminUser.id,
             email: adminUser.email,
             name: adminUser.name,
-          };
+          }
         } catch (error) {
-          console.error('Auth error:', error);
-          return null;
+          console.error('Auth error:', error)
+          return null
         }
       },
     }),
@@ -46,19 +48,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id;
-        token.email = user.email;
-        token.name = user.name;
+        token.id = user.id
+        token.email = user.email
+        token.name = user.name
       }
-      return token;
+      return token
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id as string;
-        session.user.email = token.email as string;
-        session.user.name = token.name as string;
+        session.user.id = token.id as string
+        session.user.email = token.email as string
+        session.user.name = token.name as string
       }
-      return session;
+      return session
     },
   },
-});
+})
