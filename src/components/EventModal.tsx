@@ -1,5 +1,12 @@
-'use client';
+// ============================================================
+// FIX A of 2
+// DESTINATION: src/components/EventModal.tsx
+// ACTION: REPLACE the existing file at this path
+// CHANGE: maxCapacity sends `undefined` instead of `null` when blank
+//         so Zod's .optional() accepts it correctly
+// ============================================================
 
+'use client';
 import { useState, useEffect } from 'react';
 import { X, Loader2 } from 'lucide-react';
 
@@ -78,15 +85,14 @@ export default function EventModal({ event, onClose, onSave }: EventModalProps) 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-
     try {
       const submitData = {
         ...formData,
         year: parseInt(formData.year.toString()),
         price: parseFloat(formData.price.toString()),
-        maxCapacity: formData.maxCapacity ? parseInt(formData.maxCapacity) : null,
+        // FIX: send undefined (not null) so Zod .optional() accepts it
+        maxCapacity: formData.maxCapacity ? parseInt(formData.maxCapacity) : undefined,
       };
-
       await onSave(submitData);
     } catch (error) {
       console.error('Error saving event:', error);
@@ -111,10 +117,7 @@ export default function EventModal({ event, onClose, onSave }: EventModalProps) 
           <h2 className="text-2xl font-bold text-gray-900">
             {event ? 'Edit Event' : 'Create Event'}
           </h2>
-          <button
-            onClick={onClose}
-            className="p-1 text-gray-500 hover:text-gray-700 transition"
-          >
+          <button onClick={onClose} className="p-1 text-gray-500 hover:text-gray-700 transition">
             <X className="w-6 h-6" />
           </button>
         </div>
@@ -123,66 +126,40 @@ export default function EventModal({ event, onClose, onSave }: EventModalProps) 
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {/* Name */}
           <div>
-            <label htmlFor="name" className="label">
-              Event Name *
-            </label>
+            <label htmlFor="name" className="label">Event Name *</label>
             <input
-              id="name"
-              name="name"
-              type="text"
-              value={formData.name}
-              onChange={handleChange}
-              placeholder="Spring 2026 League"
-              className="input"
-              required
+              id="name" name="name" type="text"
+              value={formData.name} onChange={handleChange}
+              placeholder="Spring 2026 League" className="input" required
             />
           </div>
 
           {/* Description */}
           <div>
-            <label htmlFor="description" className="label">
-              Description
-            </label>
+            <label htmlFor="description" className="label">Description</label>
             <textarea
-              id="description"
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              placeholder="Event details..."
-              rows={3}
-              className="input"
+              id="description" name="description"
+              value={formData.description} onChange={handleChange}
+              placeholder="Event details..." rows={3} className="input"
             />
           </div>
 
           {/* Season & Year */}
           <div className="grid grid-cols-2 gap-6">
             <div>
-              <label htmlFor="season" className="label">
-                Season *
-              </label>
+              <label htmlFor="season" className="label">Season *</label>
               <input
-                id="season"
-                name="season"
-                type="text"
-                value={formData.season}
-                onChange={handleChange}
-                placeholder="Spring"
-                className="input"
-                required
+                id="season" name="season" type="text"
+                value={formData.season} onChange={handleChange}
+                placeholder="Spring" className="input" required
               />
             </div>
             <div>
-              <label htmlFor="year" className="label">
-                Year *
-              </label>
+              <label htmlFor="year" className="label">Year *</label>
               <input
-                id="year"
-                name="year"
-                type="number"
-                value={formData.year}
-                onChange={handleChange}
-                className="input"
-                required
+                id="year" name="year" type="number"
+                value={formData.year} onChange={handleChange}
+                className="input" required
               />
             </div>
           </div>
@@ -190,31 +167,19 @@ export default function EventModal({ event, onClose, onSave }: EventModalProps) 
           {/* Dates */}
           <div className="grid grid-cols-2 gap-6">
             <div>
-              <label htmlFor="startDate" className="label">
-                Start Date *
-              </label>
+              <label htmlFor="startDate" className="label">Start Date *</label>
               <input
-                id="startDate"
-                name="startDate"
-                type="date"
-                value={formData.startDate}
-                onChange={handleChange}
-                className="input"
-                required
+                id="startDate" name="startDate" type="date"
+                value={formData.startDate} onChange={handleChange}
+                className="input" required
               />
             </div>
             <div>
-              <label htmlFor="endDate" className="label">
-                End Date *
-              </label>
+              <label htmlFor="endDate" className="label">End Date *</label>
               <input
-                id="endDate"
-                name="endDate"
-                type="date"
-                value={formData.endDate}
-                onChange={handleChange}
-                className="input"
-                required
+                id="endDate" name="endDate" type="date"
+                value={formData.endDate} onChange={handleChange}
+                className="input" required
               />
             </div>
           </div>
@@ -222,31 +187,19 @@ export default function EventModal({ event, onClose, onSave }: EventModalProps) 
           {/* Registration Dates */}
           <div className="grid grid-cols-2 gap-6">
             <div>
-              <label htmlFor="registrationOpen" className="label">
-                Registration Opens *
-              </label>
+              <label htmlFor="registrationOpen" className="label">Registration Opens *</label>
               <input
-                id="registrationOpen"
-                name="registrationOpen"
-                type="date"
-                value={formData.registrationOpen}
-                onChange={handleChange}
-                className="input"
-                required
+                id="registrationOpen" name="registrationOpen" type="date"
+                value={formData.registrationOpen} onChange={handleChange}
+                className="input" required
               />
             </div>
             <div>
-              <label htmlFor="registrationClose" className="label">
-                Registration Closes *
-              </label>
+              <label htmlFor="registrationClose" className="label">Registration Closes *</label>
               <input
-                id="registrationClose"
-                name="registrationClose"
-                type="date"
-                value={formData.registrationClose}
-                onChange={handleChange}
-                className="input"
-                required
+                id="registrationClose" name="registrationClose" type="date"
+                value={formData.registrationClose} onChange={handleChange}
+                className="input" required
               />
             </div>
           </div>
@@ -254,32 +207,19 @@ export default function EventModal({ event, onClose, onSave }: EventModalProps) 
           {/* Price & Location */}
           <div className="grid grid-cols-2 gap-6">
             <div>
-              <label htmlFor="price" className="label">
-                Price *
-              </label>
+              <label htmlFor="price" className="label">Price *</label>
               <input
-                id="price"
-                name="price"
-                type="number"
-                step="0.01"
-                value={formData.price}
-                onChange={handleChange}
-                className="input"
-                required
+                id="price" name="price" type="number" step="0.01"
+                value={formData.price} onChange={handleChange}
+                className="input" required
               />
             </div>
             <div>
-              <label htmlFor="location" className="label">
-                Location
-              </label>
+              <label htmlFor="location" className="label">Location</label>
               <input
-                id="location"
-                name="location"
-                type="text"
-                value={formData.location}
-                onChange={handleChange}
-                placeholder="Wilbur Cross High School"
-                className="input"
+                id="location" name="location" type="text"
+                value={formData.location} onChange={handleChange}
+                placeholder="Wilbur Cross High School" className="input"
               />
             </div>
           </div>
@@ -287,31 +227,19 @@ export default function EventModal({ event, onClose, onSave }: EventModalProps) 
           {/* Day of Week & Max Capacity */}
           <div className="grid grid-cols-2 gap-6">
             <div>
-              <label htmlFor="dayOfWeek" className="label">
-                Day & Time
-              </label>
+              <label htmlFor="dayOfWeek" className="label">Day &amp; Time</label>
               <input
-                id="dayOfWeek"
-                name="dayOfWeek"
-                type="text"
-                value={formData.dayOfWeek}
-                onChange={handleChange}
-                placeholder="Wednesday Evenings"
-                className="input"
+                id="dayOfWeek" name="dayOfWeek" type="text"
+                value={formData.dayOfWeek} onChange={handleChange}
+                placeholder="Wednesday Evenings" className="input"
               />
             </div>
             <div>
-              <label htmlFor="maxCapacity" className="label">
-                Max Capacity
-              </label>
+              <label htmlFor="maxCapacity" className="label">Max Capacity</label>
               <input
-                id="maxCapacity"
-                name="maxCapacity"
-                type="number"
-                value={formData.maxCapacity}
-                onChange={handleChange}
-                placeholder="Leave blank for unlimited"
-                className="input"
+                id="maxCapacity" name="maxCapacity" type="number"
+                value={formData.maxCapacity} onChange={handleChange}
+                placeholder="Leave blank for unlimited" className="input"
               />
             </div>
           </div>
@@ -319,33 +247,19 @@ export default function EventModal({ event, onClose, onSave }: EventModalProps) 
           {/* Active */}
           <div className="flex items-center gap-3">
             <input
-              id="isActive"
-              name="isActive"
-              type="checkbox"
-              checked={formData.isActive}
-              onChange={handleChange}
+              id="isActive" name="isActive" type="checkbox"
+              checked={formData.isActive} onChange={handleChange}
               className="w-4 h-4 text-primary-600"
             />
-            <label htmlFor="isActive" className="text-sm font-medium text-gray-900">
-              Active
-            </label>
+            <label htmlFor="isActive" className="text-sm font-medium text-gray-900">Active</label>
           </div>
 
           {/* Buttons */}
           <div className="flex items-center justify-end gap-4 border-t border-gray-200 pt-6">
-            <button
-              type="button"
-              onClick={onClose}
-              className="btn btn-secondary"
-              disabled={isLoading}
-            >
+            <button type="button" onClick={onClose} className="btn btn-secondary" disabled={isLoading}>
               Cancel
             </button>
-            <button
-              type="submit"
-              className="btn btn-primary gap-2"
-              disabled={isLoading}
-            >
+            <button type="submit" className="btn btn-primary gap-2" disabled={isLoading}>
               {isLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
