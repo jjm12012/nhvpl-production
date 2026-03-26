@@ -1,0 +1,61 @@
+{
+  "name": "nhvpl-payment-portal",
+  "version": "1.0.0",
+  "description": "New Haven Pickleball League - Payment Portal",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "postinstall": "prisma generate",
+    "db:push": "prisma db push",
+    "db:seed": "node prisma/seed.js"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^3.3.0",
+    "@paypal/react-paypal-js": "^7.8.0",
+    "@prisma/client": "^5.7.0",
+    "@react-email/components": "^0.0.7",
+    "@stripe/react-stripe-js": "^2.4.0",
+    "@stripe/stripe-js": "^2.0.0",
+    "@tailwindcss/forms": "^0.5.6",
+    "@types/bcryptjs": "^2.4.2",
+    "@types/lodash": "^4.14.200",
+    "autoprefixer": "^10.4.0",
+    "bcryptjs": "^2.4.3",
+    "clsx": "^2.1.1",
+    "csv-stringify": "^6.4.0",
+    "date-fns": "^2.30.0",
+    "lodash": "^4.17.21",
+    "lucide-react": "^0.292.0",
+    "next": "^14.0.0",
+    "next-auth": "^5.0.0-beta.3",
+    "postcss": "^8.4.0",
+    "prisma": "^5.7.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-hook-form": "^7.48.0",
+    "recharts": "^2.10.0",
+    "resend": "^2.0.0",
+    "sonner": "^1.2.0",
+    "stripe": "^14.0.0",
+    "tailwind-merge": "^3.5.0",
+    "tailwindcss": "^3.3.0",
+    "typescript": "^5.3.0",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "eslint": "^8.55.0",
+    "eslint-config-next": "^14.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  }
+}

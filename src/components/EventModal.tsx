@@ -1,0 +1,363 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { X, Loader2 } from 'lucide-react';
+
+interface Event {
+  id: string;
+  name: string;
+  description?: string;
+  season: string;
+  year: number;
+  startDate: Date;
+  endDate: Date;
+  registrationOpen: Date;
+  registrationClose: Date;
+  price: number;
+  currency: string;
+  location?: string;
+  dayOfWeek?: string;
+  maxCapacity?: number;
+  isActive: boolean;
+}
+
+interface EventModalProps {
+  event: Event | null;
+  onClose: () => void;
+  onSave: (data: any) => Promise<void>;
+}
+
+export default function EventModal({ event, onClose, onSave }: EventModalProps) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    season: '',
+    year: new Date().getFullYear(),
+    startDate: '',
+    endDate: '',
+    registrationOpen: '',
+    registrationClose: '',
+    price: 30,
+    currency: 'USD',
+    location: '',
+    dayOfWeek: '',
+    maxCapacity: '',
+    isActive: true,
+  });
+
+  useEffect(() => {
+    if (event) {
+      setFormData({
+        name: event.name,
+        description: event.description || '',
+        season: event.season,
+        year: event.year,
+        startDate: event.startDate instanceof Date
+          ? event.startDate.toISOString().split('T')[0]
+          : event.startDate.split('T')[0],
+        endDate: event.endDate instanceof Date
+          ? event.endDate.toISOString().split('T')[0]
+          : event.endDate.split('T')[0],
+        registrationOpen: event.registrationOpen instanceof Date
+          ? event.registrationOpen.toISOString().split('T')[0]
+          : event.registrationOpen.split('T')[0],
+        registrationClose: event.registrationClose instanceof Date
+          ? event.registrationClose.toISOString().split('T')[0]
+          : event.registrationClose.split('T')[0],
+        price: event.price,
+        currency: event.currency,
+        location: event.location || '',
+        dayOfWeek: event.dayOfWeek || '',
+        maxCapacity: event.maxCapacity?.toString() || '',
+        isActive: event.isActive,
+      });
+    }
+  }, [event]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const submitData = {
+        ...formData,
+        year: parseInt(formData.year.toString()),
+        price: parseFloat(formData.price.toString()),
+        maxCapacity: formData.maxCapacity ? parseInt(formData.maxCapacity) : null,
+      };
+
+      await onSave(submitData);
+    } catch (error) {
+      console.error('Error saving event:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
+    }));
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 sticky top-0 bg-white">
+          <h2 className="text-2xl font-bold text-gray-900">
+            {event ? 'Edit Event' : 'Create Event'}
+          </h2>
+          <button
+            onClick={onClose}
+            className="p-1 text-gray-500 hover:text-gray-700 transition"
+          >
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          {/* Name */}
+          <div>
+            <label htmlFor="name" className="label">
+              Event Name *
+            </label>
+            <input
+              id="name"
+              name="name"
+              type="text"
+              value={formData.name}
+              onChange={handleChange}
+              placeholder="Spring 2026 League"
+              className="input"
+              required
+            />
+          </div>
+
+          {/* Description */}
+          <div>
+            <label htmlFor="description" className="label">
+              Description
+            </label>
+            <textarea
+              id="description"
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              placeholder="Event details..."
+              rows={3}
+              className="input"
+            />
+          </div>
+
+          {/* Season & Year */}
+          <div className="grid grid-cols-2 gap-6">
+            <div>
+              <label htmlFor="season" className="label">
+                Season *
+              </label>
+              <input
+                id="season"
+                name="season"
+                type="text"
+                value={formData.season}
+                onChange={handleChange}
+                placeholder="Spring"
+                className="input"
+                required
+              />
+            </div>
+            <div>
+              <label htmlFor="year" className="label">
+                Year *
+              </label>
+              <input
+                id="year"
+                name="year"
+                type="number"
+                value={formData.year}
+                onChange={handleChange}
+                className="input"
+                required
+              />
+            </div>
+          </div>
+
+          {/* Dates */}
+          <div className="grid grid-cols-2 gap-6">
+            <div>
+              <label htmlFor="startDate" className="label">
+                Start Date *
+              </label>
+              <input
+                id="startDate"
+                name="startDate"
+                type="date"
+                value={formData.startDate}
+                onChange={handleChange}
+                className="input"
+                required
+              />
+            </div>
+            <div>
+              <label htmlFor="endDate" className="label">
+                End Date *
+              </label>
+              <input
+                id="endDate"
+                name="endDate"
+                type="date"
+                value={formData.endDate}
+                onChange={handleChange}
+                className="input"
+                required
+              />
+            </div>
+          </div>
+
+          {/* Registration Dates */}
+          <div className="grid grid-cols-2 gap-6">
+            <div>
+              <label htmlFor="registrationOpen" className="label">
+                Registration Opens *
+              </label>
+              <input
+                id="registrationOpen"
+                name="registrationOpen"
+                type="date"
+                value={formData.registrationOpen}
+                onChange={handleChange}
+                className="input"
+                required
+              />
+            </div>
+            <div>
+              <label htmlFor="registrationClose" className="label">
+                Registration Closes *
+              </label>
+              <input
+                id="registrationClose"
+                name="registrationClose"
+                type="date"
+                value={formData.registrationClose}
+                onChange={handleChange}
+                className="input"
+                required
+              />
+            </div>
+          </div>
+
+          {/* Price & Location */}
+          <div className="grid grid-cols-2 gap-6">
+            <div>
+              <label htmlFor="price" className="label">
+                Price *
+              </label>
+              <input
+                id="price"
+                name="price"
+                type="number"
+                step="0.01"
+                value={formData.price}
+                onChange={handleChange}
+                className="input"
+                required
+              />
+            </div>
+            <div>
+              <label htmlFor="location" className="label">
+                Location
+              </label>
+              <input
+                id="location"
+                name="location"
+                type="text"
+                value={formData.location}
+                onChange={handleChange}
+                placeholder="Wilbur Cross High School"
+                className="input"
+              />
+            </div>
+          </div>
+
+          {/* Day of Week & Max Capacity */}
+          <div className="grid grid-cols-2 gap-6">
+            <div>
+              <label htmlFor="dayOfWeek" className="label">
+                Day & Time
+              </label>
+              <input
+                id="dayOfWeek"
+                name="dayOfWeek"
+                type="text"
+                value={formData.dayOfWeek}
+                onChange={handleChange}
+                placeholder="Wednesday Evenings"
+                className="input"
+              />
+            </div>
+            <div>
+              <label htmlFor="maxCapacity" className="label">
+                Max Capacity
+              </label>
+              <input
+                id="maxCapacity"
+                name="maxCapacity"
+                type="number"
+                value={formData.maxCapacity}
+                onChange={handleChange}
+                placeholder="Leave blank for unlimited"
+                className="input"
+              />
+            </div>
+          </div>
+
+          {/* Active */}
+          <div className="flex items-center gap-3">
+            <input
+              id="isActive"
+              name="isActive"
+              type="checkbox"
+              checked={formData.isActive}
+              onChange={handleChange}
+              className="w-4 h-4 text-primary-600"
+            />
+            <label htmlFor="isActive" className="text-sm font-medium text-gray-900">
+              Active
+            </label>
+          </div>
+
+          {/* Buttons */}
+          <div className="flex items-center justify-end gap-4 border-t border-gray-200 pt-6">
+            <button
+              type="button"
+              onClick={onClose}
+              className="btn btn-secondary"
+              disabled={isLoading}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="btn btn-primary gap-2"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                'Save Event'
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}

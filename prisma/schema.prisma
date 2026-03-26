@@ -1,0 +1,96 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum SkillLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  STRIPE_CARD
+  STRIPE_APPLE_PAY
+  STRIPE_GOOGLE_PAY
+  PAYPAL
+}
+
+model Event {
+  id                  String         @id @default(cuid())
+  name                String
+  description         String?
+  season              String
+  year                Int
+  startDate           DateTime
+  endDate             DateTime
+  registrationOpen    DateTime
+  registrationClose   DateTime
+  price               Decimal        @db.Decimal(10, 2)
+  currency            String         @default("USD")
+  maxCapacity         Int?
+  location            String?
+  dayOfWeek           String?
+  isActive            Boolean        @default(true)
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+  registrations       Registration[]
+
+  @@index([isActive])
+  @@index([year, season])
+}
+
+model Registration {
+  id                    String         @id @default(cuid())
+  eventId               String
+  event                 Event          @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  firstName             String
+  lastName              String
+  email                 String
+  phone                 String
+  division              SkillLevel
+  canCommit             Boolean
+  interestedInCaptain   Boolean        @default(false)
+  willingToMonitor      Boolean        @default(false)
+  teamPreference        String?
+  liabilityAck          Boolean
+  funAck                Boolean
+  paymentStatus         PaymentStatus  @default(PENDING)
+  paymentMethod         PaymentMethod?
+  stripeSessionId       String?        @unique
+  stripePaymentIntentId String?        @unique
+  paypalOrderId         String?        @unique
+  amountPaid            Decimal?       @db.Decimal(10, 2)
+  paidAt                DateTime?
+  ipAddress             String?
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+
+  @@index([email])
+  @@index([eventId])
+  @@index([paymentStatus])
+}
+
+model AdminUser {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  passwordHash  String
+  name          String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
