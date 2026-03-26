@@ -10,28 +10,15 @@ async function checkAuth() {
   return session;
 }
 
-// PUT: Full event update
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const session = await checkAuth();
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
+    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const { id } = params;
     const body = await request.json();
     const validatedData = eventSchema.parse(body);
-
     const event = await prisma.event.findUnique({ where: { id } });
-    if (!event) {
-      return NextResponse.json({ error: 'Event not found' }, { status: 404 });
-    }
-
-    // FIX: Pass price directly — Prisma handles Decimal conversion automatically.
-    // The previous `new (require(...).Decimal)(...)` pattern crashes in Next.js.
+    if (!event) return NextResponse.json({ error: 'Event not found' }, { status: 404 });
     const updatedEvent = await prisma.event.update({
       where: { id },
       data: {
@@ -51,43 +38,24 @@ export async function PUT(
         isActive: validatedData.isActive,
       },
     });
-
     return NextResponse.json(updatedEvent);
   } catch (error) {
     if (error instanceof ZodError) {
-      return NextResponse.json(
-        { error: 'Validation error', details: error.errors },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Validation error', details: error.errors }, { status: 400 });
     }
     console.error('Event update error:', error);
     return NextResponse.json({ error: 'Failed to update event' }, { status: 500 });
   }
 }
 
-// DELETE: Soft delete (sets isActive to false)
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const session = await checkAuth();
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
+    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const { id } = params;
-
     const event = await prisma.event.findUnique({ where: { id } });
-    if (!event) {
-      return NextResponse.json({ error: 'Event not found' }, { status: 404 });
-    }
-
-    const deletedEvent = await prisma.event.update({
-      where: { id },
-      data: { isActive: false },
-    });
-
+    if (!event) return NextResponse.json({ error: 'Event not found' }, { status: 404 });
+    const deletedEvent = await prisma.event.update({ where: { id }, data: { isActive: false } });
     return NextResponse.json(deletedEvent);
   } catch (error) {
     console.error('Event deletion error:', error);
