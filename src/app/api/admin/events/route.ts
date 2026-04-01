@@ -10,14 +10,19 @@ async function checkAuth() {
   return session;
 }
 
+// GET: List all events
 export async function GET(request: NextRequest) {
   try {
     const session = await checkAuth();
-    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const events = await prisma.event.findMany({
       orderBy: { startDate: 'desc' },
       include: { _count: { select: { registrations: true } } },
     });
+
     return NextResponse.json(events);
   } catch (error) {
     console.error('Error fetching events:', error);
@@ -25,12 +30,17 @@ export async function GET(request: NextRequest) {
   }
 }
 
+// POST: Create event
 export async function POST(request: NextRequest) {
   try {
     const session = await checkAuth();
-    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
     const validatedData = eventSchema.parse(body);
+
     const event = await prisma.event.create({
       data: {
         name: validatedData.name,
@@ -49,6 +59,7 @@ export async function POST(request: NextRequest) {
         isActive: validatedData.isActive,
       },
     });
+
     return NextResponse.json(event, { status: 201 });
   } catch (error) {
     if (error instanceof ZodError) {
