@@ -8,17 +8,30 @@ async function checkAuth() {
   return session;
 }
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+// PATCH: Toggle event isActive status
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
     const session = await checkAuth();
-    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { id } = params;
+
     const event = await prisma.event.findUnique({ where: { id } });
-    if (!event) return NextResponse.json({ error: 'Event not found' }, { status: 404 });
+    if (!event) {
+      return NextResponse.json({ error: 'Event not found' }, { status: 404 });
+    }
+
+    // Flip the current isActive value
     const updatedEvent = await prisma.event.update({
       where: { id },
       data: { isActive: !event.isActive },
     });
+
     return NextResponse.json(updatedEvent);
   } catch (error) {
     console.error('Event toggle error:', error);
