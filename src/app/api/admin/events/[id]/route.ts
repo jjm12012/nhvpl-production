@@ -10,15 +10,26 @@ async function checkAuth() {
   return session;
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+// PUT: Full event update
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
     const session = await checkAuth();
-    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { id } = params;
     const body = await request.json();
     const validatedData = eventSchema.parse(body);
+
     const event = await prisma.event.findUnique({ where: { id } });
-    if (!event) return NextResponse.json({ error: 'Event not found' }, { status: 404 });
+    if (!event) {
+      return NextResponse.json({ error: 'Event not found' }, { status: 404 });
+    }
+
     const updatedEvent = await prisma.event.update({
       where: { id },
       data: {
@@ -38,6 +49,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         isActive: validatedData.isActive,
       },
     });
+
     return NextResponse.json(updatedEvent);
   } catch (error) {
     if (error instanceof ZodError) {
@@ -48,14 +60,29 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+// DELETE: Soft delete (sets isActive to false)
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
     const session = await checkAuth();
-    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { id } = params;
+
     const event = await prisma.event.findUnique({ where: { id } });
-    if (!event) return NextResponse.json({ error: 'Event not found' }, { status: 404 });
-    const deletedEvent = await prisma.event.update({ where: { id }, data: { isActive: false } });
+    if (!event) {
+      return NextResponse.json({ error: 'Event not found' }, { status: 404 });
+    }
+
+    const deletedEvent = await prisma.event.update({
+      where: { id },
+      data: { isActive: false },
+    });
+
     return NextResponse.json(deletedEvent);
   } catch (error) {
     console.error('Event deletion error:', error);
