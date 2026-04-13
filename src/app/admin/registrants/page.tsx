@@ -11,8 +11,8 @@ interface Registration {
   lastName: string;
   email: string;
   phone: string;
-  skillLevel: string;
-  amount: number;
+  division: string;
+  amountPaid: string | null;
   paymentStatus: string;
   paymentMethod?: string;
   interestedInCaptain: string;
@@ -68,7 +68,7 @@ export default function RegistrantsPage() {
         reg.email.toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchesEvent = !filterEvent || reg.event.name === filterEvent;
-      const matchesDivision = !filterDivision || reg.skillLevel === filterDivision;
+      const matchesDivision = !filterDivision || reg.division === filterDivision;
       const matchesStatus = !filterStatus || reg.paymentStatus === filterStatus;
 
       return matchesSearch && matchesEvent && matchesDivision && matchesStatus;
@@ -85,7 +85,7 @@ export default function RegistrantsPage() {
 
   // Unique values for filters
   const uniqueEvents = [...new Set(registrations.map((r) => r.event.name))];
-  const uniqueDivisions = [...new Set(registrations.map((r) => r.skillLevel))];
+  const uniqueDivisions = [...new Set(registrations.map((r) => r.division))];
 
   const handleExportCSV = () => {
     try {
@@ -110,12 +110,12 @@ export default function RegistrantsPage() {
         reg.email,
         reg.phone,
         reg.event.name,
-        divisionLabel(reg.skillLevel as any),
+        divisionLabel(reg.division as any),
         reg.interestedInCaptain === 'yes' ? 'Yes' : 'No',
         reg.teamPreference || '',
         reg.paymentStatus,
         reg.paymentMethod ? paymentMethodLabel(reg.paymentMethod as any) : '—',
-        formatCurrency(reg.amount, reg.event.currency),
+        formatCurrency(reg.amountPaid, reg.event.currency),
         formatDate(reg.createdAt),
       ]);
 
@@ -283,7 +283,7 @@ export default function RegistrantsPage() {
                     <td className="px-6 py-4 text-gray-600">{reg.event.name}</td>
                     <td className="px-6 py-4">
                       <span className="inline-flex px-2 py-1 rounded-full text-xs font-medium bg-primary-100 text-primary-700">
-                        {divisionLabel(reg.skillLevel as any)}
+                        {divisionLabel(reg.division as any)}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-gray-600">
@@ -299,7 +299,7 @@ export default function RegistrantsPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 font-medium text-gray-900">
-                      {formatCurrency(reg.amount, reg.event.currency)}
+                      {formatCurrency(reg.amountPaid, reg.event.currency)}
                     </td>
                     <td className="px-6 py-4 text-gray-600">
                       {formatDate(reg.createdAt)}
