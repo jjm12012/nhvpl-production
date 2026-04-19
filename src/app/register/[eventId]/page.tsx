@@ -317,7 +317,7 @@ export default function RegistrationFormPage() {
                     className="mt-1 w-4 h-4 text-primary-600"
                   />
                   <span className="text-sm text-gray-900">
-                    I confirm that I can commit to playing the full 8-week season on Tuesday–Thursday evenings
+                    I'll show up and give it my best — barring the unexpected, I plan to miss no more than 2 weeks of the season.
                   </span>
                 </label>
                 {errors.canCommit && (
