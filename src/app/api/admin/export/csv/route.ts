@@ -1,6 +1,7 @@
 import { auth } from '@/auth';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { divisionLabel, paymentMethodLabel } from '@/lib/utils';
 
 // Middleware to check authentication
 async function checkAuth() {
@@ -71,7 +72,9 @@ export async function GET(request: NextRequest) {
       'Email',
       'Phone',
       'Division',
+      'Team Preference',
       'Captain Interest',
+      'Willing to Monitor',
       'Payment Status',
       'Payment Method',
       'Amount Paid',
@@ -89,10 +92,12 @@ export async function GET(request: NextRequest) {
       escapeCSV(reg.lastName),
       escapeCSV(reg.email),
       escapeCSV(reg.phone),
-      escapeCSV(reg.division),
+      escapeCSV(divisionLabel(reg.division)),
+      escapeCSV(reg.teamPreference || ''),
       escapeCSV(reg.interestedInCaptain ? 'Yes' : 'No'),
+      escapeCSV(reg.willingToMonitor ? 'Yes' : 'No'),
       escapeCSV(reg.paymentStatus),
-      escapeCSV(reg.paymentMethod || ''),
+      escapeCSV(reg.paymentMethod ? paymentMethodLabel(reg.paymentMethod) : ''),
       escapeCSV(reg.amountPaid ? String(reg.amountPaid) : ''),
       escapeCSV(reg.paidAt ? reg.paidAt.toISOString() : ''),
       escapeCSV(reg.createdAt.toISOString()),

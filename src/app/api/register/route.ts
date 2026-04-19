@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { registrationSchema } from '@/lib/validations';
+import { divisionCapacityKey, divisionLabel } from '@/lib/utils';
 import { ZodError } from 'zod';
 
 export async function POST(request: NextRequest) {
@@ -61,19 +62,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check capacity if specified
-    if (event.maxCapacity) {
-      const paidCount = await prisma.registration.count({
+    // Check capacity for the selected division if a cap is set.
+    // Pending registrations still hold a spot so players can't race past the cap
+    // while others are mid-payment.
+    const capKey = divisionCapacityKey(validatedData.division);
+    const divisionCap = event[capKey];
+
+    if (typeof divisionCap === 'number') {
+      const heldCount = await prisma.registration.count({
         where: {
           eventId: validatedData.eventId,
-          paymentStatus: 'PAID',
+          division: validatedData.division,
+          paymentStatus: { in: ['PAID', 'PENDING'] },
         },
       });
 
-      if (paidCount >= event.maxCapacity) {
+      if (heldCount >= divisionCap) {
         return NextResponse.json(
-          { error: 'Event is sold out' },
-          { status: 400 }
+          {
+            error: `The ${divisionLabel(validatedData.division)} division is full`,
+            division: validatedData.division,
+          },
+          { status: 409 }
         );
       }
     }

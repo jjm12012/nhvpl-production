@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { sendConfirmationEmailForRegistration } from '@/lib/email';
 
 export async function POST(request: NextRequest) {
   try {
@@ -30,6 +31,8 @@ export async function POST(request: NextRequest) {
         paidAt: new Date(),
       },
     });
+
+    await sendConfirmationEmailForRegistration(updated.id);
 
     return NextResponse.json({ success: true, registrationId: updated.id }, { status: 200 });
   } catch (error) {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { sendConfirmationEmailForRegistration } from '@/lib/email';
 
 /**
  * PayPal Capture Order API
@@ -48,6 +49,8 @@ export async function POST(request: NextRequest) {
 
     // Mark registration as PAID
     const now = new Date();
+    const wasAlreadyPaid = registration.paymentStatus === 'PAID';
+
     await prisma.registration.update({
       where: { id: registrationId },
       data: {
@@ -57,6 +60,10 @@ export async function POST(request: NextRequest) {
         paidAt: now,
       },
     });
+
+    if (!wasAlreadyPaid) {
+      await sendConfirmationEmailForRegistration(registrationId);
+    }
 
     return NextResponse.json({
       status: 'COMPLETED',

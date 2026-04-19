@@ -145,10 +145,10 @@ export default async function HomePage() {
               <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center mb-4">
                 <Trophy className="w-6 h-6 text-primary-600" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">3 Skill Divisions</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">4 Skill Divisions</h3>
               <p className="text-gray-600">
-                Play at your level with Beginner, Intermediate, and Advanced divisions to ensure
-                competitive balance.
+                Play at your level with Beginner, Intermediate A, Intermediate B, and Advanced
+                divisions to ensure competitive balance.
               </p>
             </div>
             <div className="card p-6">

@@ -58,7 +58,8 @@ export function formatPhone(value: string): string {
 export function divisionLabel(level: SkillLevel): string {
   const labels: Record<SkillLevel, string> = {
     BEGINNER: 'Beginner',
-    INTERMEDIATE: 'Intermediate',
+    INTERMEDIATE_A: 'Intermediate A',
+    INTERMEDIATE_B: 'Intermediate B',
     ADVANCED: 'Advanced',
   };
 
@@ -68,11 +69,25 @@ export function divisionLabel(level: SkillLevel): string {
 export function divisionDescription(level: SkillLevel): string {
   const descriptions: Record<SkillLevel, string> = {
     BEGINNER: 'New to pickleball or playing for less than 1 year',
-    INTERMEDIATE: 'Playing for 1-3 years with some tournament experience',
+    INTERMEDIATE_A: 'Playing for 1-2 years, building consistency and match experience',
+    INTERMEDIATE_B: 'Playing for 2-3 years, comfortable with strategy and competitive play',
     ADVANCED: 'Playing for 3+ years with consistent tournament play',
   };
 
   return descriptions[level];
+}
+
+// Capacity key used to look up the cap on Event for a given division.
+export function divisionCapacityKey(
+  level: SkillLevel
+): 'maxBeginner' | 'maxIntermediateA' | 'maxIntermediateB' | 'maxAdvanced' {
+  const map: Record<SkillLevel, 'maxBeginner' | 'maxIntermediateA' | 'maxIntermediateB' | 'maxAdvanced'> = {
+    BEGINNER: 'maxBeginner',
+    INTERMEDIATE_A: 'maxIntermediateA',
+    INTERMEDIATE_B: 'maxIntermediateB',
+    ADVANCED: 'maxAdvanced',
+  };
+  return map[level];
 }
 
 export function paymentMethodLabel(method: PaymentMethod): string {
@@ -91,10 +106,33 @@ export function isRegistrationOpen(event: Event): boolean {
   return now >= event.registrationOpen && now <= event.registrationClose && event.isActive;
 }
 
-export function spotsRemaining(event: Event, paidCount: number): number | null {
-  if (!event.maxCapacity) {
-    return null;
-  }
+// Total max capacity summed across all divisions (null if no division has a cap).
+export function totalMaxCapacity(event: Event): number | null {
+  const caps = [
+    event.maxBeginner,
+    event.maxIntermediateA,
+    event.maxIntermediateB,
+    event.maxAdvanced,
+  ].filter((c): c is number => typeof c === 'number');
 
-  return Math.max(0, event.maxCapacity - paidCount);
+  if (caps.length === 0) return null;
+  return caps.reduce((sum, c) => sum + c, 0);
+}
+
+export function spotsRemaining(event: Event, paidCount: number): number | null {
+  const total = totalMaxCapacity(event);
+  if (total === null) return null;
+
+  return Math.max(0, total - paidCount);
+}
+
+export function spotsRemainingForDivision(
+  event: Event,
+  level: SkillLevel,
+  paidCountForDivision: number
+): number | null {
+  const key = divisionCapacityKey(level);
+  const cap = event[key];
+  if (cap === null || cap === undefined) return null;
+  return Math.max(0, cap - paidCountForDivision);
 }
