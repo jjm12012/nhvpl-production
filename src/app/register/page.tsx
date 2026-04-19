@@ -1,10 +1,24 @@
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
+import type { SkillLevel } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
-import { formatDate, formatCurrency, spotsRemaining } from '@/lib/utils';
+import {
+  formatDate,
+  formatCurrency,
+  spotsRemaining,
+  spotsRemainingForDivision,
+  divisionLabel,
+} from '@/lib/utils';
 
 // FIX: force dynamic so registration page always shows live event data
 export const dynamic = 'force-dynamic';
+
+const DIVISIONS: SkillLevel[] = [
+  'BEGINNER',
+  'INTERMEDIATE_A',
+  'INTERMEDIATE_B',
+  'ADVANCED',
+];
 
 async function getActiveEvents() {
   try {
@@ -19,13 +33,15 @@ async function getActiveEvents() {
         },
       },
       include: {
-        _count: {
+        registrations: {
+          // Count anything that's not explicitly failed/cancelled/refunded so pending
+          // registrations still hold a spot toward the division cap.
+          where: {
+            paymentStatus: { in: ['PAID', 'PENDING'] },
+          },
           select: {
-            registrations: {
-              where: {
-                paymentStatus: 'PAID',
-              },
-            },
+            id: true,
+            division: true,
           },
         },
       },
@@ -75,9 +91,32 @@ export default async function EventSelectionPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {events.map((event) => {
-              const paidCount = event._count.registrations;
+              const paidCountsByDivision: Record<SkillLevel, number> = {
+                BEGINNER: 0,
+                INTERMEDIATE_A: 0,
+                INTERMEDIATE_B: 0,
+                ADVANCED: 0,
+              };
+              for (const r of event.registrations) {
+                paidCountsByDivision[r.division] =
+                  (paidCountsByDivision[r.division] || 0) + 1;
+              }
+              const paidCount = event.registrations.length;
               const remaining = spotsRemaining(event, paidCount);
               const isFull = remaining !== null && remaining === 0;
+
+              // Build per-division remaining list (only divisions with a cap configured)
+              const divisionBreakdown = DIVISIONS.map((level) => ({
+                level,
+                remaining: spotsRemainingForDivision(
+                  event,
+                  level,
+                  paidCountsByDivision[level] || 0
+                ),
+              })).filter((d) => d.remaining !== null) as {
+                level: SkillLevel;
+                remaining: number;
+              }[];
 
               return (
                 <div
@@ -134,6 +173,32 @@ export default async function EventSelectionPage() {
                               ? 'Event Full'
                               : `${remaining} spot${remaining !== 1 ? 's' : ''} remaining`}
                           </p>
+                          {divisionBreakdown.length > 0 && (
+                            <ul className="mt-2 space-y-1">
+                              {divisionBreakdown.map(({ level, remaining: divRemaining }) => {
+                                const divFull = divRemaining === 0;
+                                return (
+                                  <li
+                                    key={level}
+                                    className={`flex items-center justify-between text-xs ${
+                                      divFull
+                                        ? 'text-red-700'
+                                        : isFull
+                                          ? 'text-red-700/80'
+                                          : 'text-primary-700/80'
+                                    }`}
+                                  >
+                                    <span>{divisionLabel(level)}</span>
+                                    <span className="font-medium">
+                                      {divFull
+                                        ? 'Full'
+                                        : `${divRemaining} spot${divRemaining !== 1 ? 's' : ''} left`}
+                                    </span>
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          )}
                         </div>
                       )}
                     </div>
