@@ -60,7 +60,9 @@ export async function PUT(
   }
 }
 
-// DELETE: Soft delete (sets isActive to false)
+// DELETE: Hard-delete the event. Associated registrations are removed via
+// the onDelete: Cascade relation defined in prisma/schema.prisma.
+// Deactivation (soft-delete) is handled separately via PATCH /toggle.
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -78,12 +80,9 @@ export async function DELETE(
       return NextResponse.json({ error: 'Event not found' }, { status: 404 });
     }
 
-    const deletedEvent = await prisma.event.update({
-      where: { id },
-      data: { isActive: false },
-    });
+    await prisma.event.delete({ where: { id } });
 
-    return NextResponse.json(deletedEvent);
+    return NextResponse.json({ success: true, id });
   } catch (error) {
     console.error('Event deletion error:', error);
     return NextResponse.json({ error: 'Failed to delete event' }, { status: 500 });
