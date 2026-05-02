@@ -296,11 +296,11 @@ export default function RegistrationFormPage() {
                 </label>
                 <input
                   {...register('teamPreference')}
-                  placeholder="Any names of people you'd like to play with"
+                  placeholder="Name of one player you'd like to be grouped with"
                   className="input"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Let us know if you have team preferences or players you'd like to be grouped with.
+                  You can only choose one player you'd like to be grouped with.
                 </p>
               </div>
             </section>
