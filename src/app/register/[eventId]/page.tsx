@@ -352,12 +352,12 @@ export default function RegistrationFormPage() {
                 </label>
                 <input
                   {...register('teamPreference')}
-                  placeholder="e.g., Jane Doe, John Smith"
+                  placeholder="e.g., Jane Doe"
                   className="input"
                   maxLength={200}
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  You can list up to 2 players you'd like to be grouped with. Separate names with a comma.
+                  You can only choose one player you'd like to be grouped with.
                 </p>
               </div>
             </section>
