@@ -43,7 +43,10 @@ export default function RegistrantsPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/admin/registrants');
+      // Use a large limit so the table + CSV export include every registrant.
+      // The API defaults to limit=25, which previously caused Export CSV to only
+      // include the most recent 25 rows.
+      const response = await fetch('/api/admin/registrants?limit=10000');
 
       if (!response.ok) {
         throw new Error('Failed to fetch registrations');
