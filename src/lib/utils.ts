@@ -69,8 +69,8 @@ export function divisionLabel(level: SkillLevel): string {
 export function divisionDescription(level: SkillLevel): string {
   const descriptions: Record<SkillLevel, string> = {
     BEGINNER: 'New to pickleball or playing for less than 1 year',
-    INTERMEDIATE_A: 'Playing for 1-2 years, building consistency and match experience',
-    INTERMEDIATE_B: 'Playing for 2-3 years, comfortable with strategy and competitive play',
+    INTERMEDIATE_A: '3.0-3.5: Grasped basic strategies and incorporating spin and power into your game',
+    INTERMEDIATE_B: '2.0-3.0: Understand the rules and looking to improve with consistency and basic strategy',
     ADVANCED: 'Playing for 3+ years with consistent tournament play',
   };
 
