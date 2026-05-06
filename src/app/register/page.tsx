@@ -24,10 +24,10 @@ async function getActiveEvents() {
       },
       include: {
         registrations: {
-          // Count anything that's not explicitly failed/cancelled/refunded so pending
-          // registrations still hold a spot toward the division cap.
+          // Only count completed (PAID) registrations toward the division cap.
+          // PENDING signups (step 1 completed, payment not yet made) do not hold a spot.
           where: {
-            paymentStatus: { in: ['PAID', 'PENDING'] },
+            paymentStatus: 'PAID',
           },
           select: {
             id: true,

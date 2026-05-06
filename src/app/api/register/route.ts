@@ -63,21 +63,20 @@ export async function POST(request: NextRequest) {
     }
 
     // Check capacity for the selected division if a cap is set.
-    // Pending registrations still hold a spot so players can't race past the cap
-    // while others are mid-payment.
+    // Only PAID registrations count toward the cap; PENDING signups do not hold a spot.
     const capKey = divisionCapacityKey(validatedData.division);
     const divisionCap = event[capKey];
 
     if (typeof divisionCap === 'number') {
-      const heldCount = await prisma.registration.count({
+      const paidCount = await prisma.registration.count({
         where: {
           eventId: validatedData.eventId,
           division: validatedData.division,
-          paymentStatus: { in: ['PAID', 'PENDING'] },
+          paymentStatus: 'PAID',
         },
       });
 
-      if (heldCount >= divisionCap) {
+      if (paidCount >= divisionCap) {
         return NextResponse.json(
           {
             error: `The ${divisionLabel(validatedData.division)} division is full`,
