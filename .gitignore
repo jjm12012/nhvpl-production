@@ -10,6 +10,9 @@ node_modules/
 /.next/
 /out/
 
+# TypeScript build cache
+*.tsbuildinfo
+
 # Production
 /build
 /dist
@@ -32,7 +35,6 @@ prisma/*.db-wal
 *.swp
 *.swo
 *~
-.DS_Store
 
 # Vercel
 .vercel
