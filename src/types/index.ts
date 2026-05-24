@@ -22,11 +22,15 @@ export interface EventListItem {
   registrationClose: Date;
   price: number;
   currency: string;
-  maxCapacity: number | null;
+  maxBeginner: number | null;
+  maxIntermediateA: number | null;
+  maxIntermediateB: number | null;
+  maxAdvanced: number | null;
   location: string | null;
   isActive: boolean;
   registrationCount?: number;
   paidCount?: number;
+  paidCountsByDivision?: Record<SkillLevel, number>;
 }
 
 export interface RegistrationListItem {

@@ -13,7 +13,8 @@ datasource db {
 
 enum SkillLevel {
   BEGINNER
-  INTERMEDIATE
+  INTERMEDIATE_A
+  INTERMEDIATE_B
   ADVANCED
 }
 
@@ -44,7 +45,10 @@ model Event {
   registrationClose   DateTime
   price               Decimal        @db.Decimal(10, 2)
   currency            String         @default("USD")
-  maxCapacity         Int?
+  maxBeginner         Int?
+  maxIntermediateA    Int?
+  maxIntermediateB    Int?
+  maxAdvanced         Int?
   location            String?
   dayOfWeek           String?
   isActive            Boolean        @default(true)

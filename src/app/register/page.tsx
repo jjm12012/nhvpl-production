@@ -1,7 +1,11 @@
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
-import { formatDate, formatCurrency, spotsRemaining } from '@/lib/utils';
+import {
+  formatDate,
+  formatCurrency,
+  spotsRemaining,
+} from '@/lib/utils';
 
 // FIX: force dynamic so registration page always shows live event data
 export const dynamic = 'force-dynamic';
@@ -19,13 +23,15 @@ async function getActiveEvents() {
         },
       },
       include: {
-        _count: {
+        registrations: {
+          // Only count completed (PAID) registrations toward the division cap.
+          // PENDING signups (step 1 completed, payment not yet made) do not hold a spot.
+          where: {
+            paymentStatus: 'PAID',
+          },
           select: {
-            registrations: {
-              where: {
-                paymentStatus: 'PAID',
-              },
-            },
+            id: true,
+            division: true,
           },
         },
       },
@@ -75,7 +81,7 @@ export default async function EventSelectionPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {events.map((event) => {
-              const paidCount = event._count.registrations;
+              const paidCount = event.registrations.length;
               const remaining = spotsRemaining(event, paidCount);
               const isFull = remaining !== null && remaining === 0;
 
@@ -121,21 +127,6 @@ export default async function EventSelectionPage() {
                           </span>
                         </div>
                       </div>
-                      {remaining !== null && (
-                        <div
-                          className={`p-3 rounded-lg ${
-                            isFull
-                              ? 'bg-red-50 text-red-700'
-                              : 'bg-primary-50 text-primary-700'
-                          }`}
-                        >
-                          <p className="text-sm font-medium">
-                            {isFull
-                              ? 'Event Full'
-                              : `${remaining} spot${remaining !== 1 ? 's' : ''} remaining`}
-                          </p>
-                        </div>
-                      )}
                     </div>
 
                     {/* CTA */}

@@ -15,7 +15,7 @@ interface Registration {
   amountPaid: string | null;
   paymentStatus: string;
   paymentMethod?: string;
-  interestedInCaptain: string;
+  interestedInCaptain: boolean;
   teamPreference?: string;
   createdAt: Date;
   event: {
@@ -43,7 +43,10 @@ export default function RegistrantsPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/admin/registrants');
+      // Use a large limit so the table + CSV export include every registrant.
+      // The API defaults to limit=25, which previously caused Export CSV to only
+      // include the most recent 25 rows.
+      const response = await fetch('/api/admin/registrants?limit=10000');
 
       if (!response.ok) {
         throw new Error('Failed to fetch registrations');
@@ -111,7 +114,7 @@ export default function RegistrantsPage() {
         reg.phone,
         reg.event.name,
         divisionLabel(reg.division as any),
-        reg.interestedInCaptain === 'yes' ? 'Yes' : 'No',
+        reg.interestedInCaptain ? 'Yes' : 'No',
         reg.teamPreference || '',
         reg.paymentStatus,
         reg.paymentMethod ? paymentMethodLabel(reg.paymentMethod as any) : '—',
@@ -287,7 +290,7 @@ export default function RegistrantsPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-gray-600">
-                      {reg.interestedInCaptain === 'yes' ? '✓' : '—'}
+                      {reg.interestedInCaptain ? '✓' : '—'}
                     </td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${

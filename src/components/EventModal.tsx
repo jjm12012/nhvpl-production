@@ -1,11 +1,3 @@
-// ============================================================
-// FIX A of 2
-// DESTINATION: src/components/EventModal.tsx
-// ACTION: REPLACE the existing file at this path
-// CHANGE: maxCapacity sends `undefined` instead of `null` when blank
-//         so Zod's .optional() accepts it correctly
-// ============================================================
-
 'use client';
 import { useState, useEffect } from 'react';
 import { X, Loader2 } from 'lucide-react';
@@ -24,7 +16,10 @@ interface Event {
   currency: string;
   location?: string;
   dayOfWeek?: string;
-  maxCapacity?: number;
+  maxBeginner?: number | null;
+  maxIntermediateA?: number | null;
+  maxIntermediateB?: number | null;
+  maxAdvanced?: number | null;
   isActive: boolean;
 }
 
@@ -49,7 +44,10 @@ export default function EventModal({ event, onClose, onSave }: EventModalProps) 
     currency: 'USD',
     location: '',
     dayOfWeek: '',
-    maxCapacity: '',
+    maxBeginner: '',
+    maxIntermediateA: '',
+    maxIntermediateB: '',
+    maxAdvanced: '',
     isActive: true,
   });
 
@@ -76,7 +74,10 @@ export default function EventModal({ event, onClose, onSave }: EventModalProps) 
         currency: event.currency,
         location: event.location || '',
         dayOfWeek: event.dayOfWeek || '',
-        maxCapacity: event.maxCapacity?.toString() || '',
+        maxBeginner: event.maxBeginner != null ? event.maxBeginner.toString() : '',
+        maxIntermediateA: event.maxIntermediateA != null ? event.maxIntermediateA.toString() : '',
+        maxIntermediateB: event.maxIntermediateB != null ? event.maxIntermediateB.toString() : '',
+        maxAdvanced: event.maxAdvanced != null ? event.maxAdvanced.toString() : '',
         isActive: event.isActive,
       });
     }
@@ -90,8 +91,11 @@ export default function EventModal({ event, onClose, onSave }: EventModalProps) 
         ...formData,
         year: parseInt(formData.year.toString()),
         price: parseFloat(formData.price.toString()),
-        // FIX: send undefined (not null) so Zod .optional() accepts it
-        maxCapacity: formData.maxCapacity ? parseInt(formData.maxCapacity) : undefined,
+        // Send undefined (not null) so Zod .optional() accepts it
+        maxBeginner: formData.maxBeginner ? parseInt(formData.maxBeginner) : undefined,
+        maxIntermediateA: formData.maxIntermediateA ? parseInt(formData.maxIntermediateA) : undefined,
+        maxIntermediateB: formData.maxIntermediateB ? parseInt(formData.maxIntermediateB) : undefined,
+        maxAdvanced: formData.maxAdvanced ? parseInt(formData.maxAdvanced) : undefined,
       };
       await onSave(submitData);
     } catch (error) {
@@ -224,23 +228,55 @@ export default function EventModal({ event, onClose, onSave }: EventModalProps) 
             </div>
           </div>
 
-          {/* Day of Week & Max Capacity */}
-          <div className="grid grid-cols-2 gap-6">
-            <div>
-              <label htmlFor="dayOfWeek" className="label">Day &amp; Time</label>
-              <input
-                id="dayOfWeek" name="dayOfWeek" type="text"
-                value={formData.dayOfWeek} onChange={handleChange}
-                placeholder="Wednesday Evenings" className="input"
-              />
-            </div>
-            <div>
-              <label htmlFor="maxCapacity" className="label">Max Capacity</label>
-              <input
-                id="maxCapacity" name="maxCapacity" type="number"
-                value={formData.maxCapacity} onChange={handleChange}
-                placeholder="Leave blank for unlimited" className="input"
-              />
+          {/* Day of Week */}
+          <div>
+            <label htmlFor="dayOfWeek" className="label">Day &amp; Time</label>
+            <input
+              id="dayOfWeek" name="dayOfWeek" type="text"
+              value={formData.dayOfWeek} onChange={handleChange}
+              placeholder="Wednesday Evenings" className="input"
+            />
+          </div>
+
+          {/* Max Capacity per Skill Level */}
+          <div>
+            <label className="label">Max Capacity by Skill Level</label>
+            <p className="text-xs text-gray-500 mb-3">
+              Leave blank for unlimited in that division. Players will not be able to register for a division once it fills up.
+            </p>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="maxBeginner" className="text-xs font-medium text-gray-700 mb-1 block">Beginner</label>
+                <input
+                  id="maxBeginner" name="maxBeginner" type="number" min="0"
+                  value={formData.maxBeginner} onChange={handleChange}
+                  placeholder="Unlimited" className="input"
+                />
+              </div>
+              <div>
+                <label htmlFor="maxIntermediateA" className="text-xs font-medium text-gray-700 mb-1 block">Intermediate A</label>
+                <input
+                  id="maxIntermediateA" name="maxIntermediateA" type="number" min="0"
+                  value={formData.maxIntermediateA} onChange={handleChange}
+                  placeholder="Unlimited" className="input"
+                />
+              </div>
+              <div>
+                <label htmlFor="maxIntermediateB" className="text-xs font-medium text-gray-700 mb-1 block">Intermediate B</label>
+                <input
+                  id="maxIntermediateB" name="maxIntermediateB" type="number" min="0"
+                  value={formData.maxIntermediateB} onChange={handleChange}
+                  placeholder="Unlimited" className="input"
+                />
+              </div>
+              <div>
+                <label htmlFor="maxAdvanced" className="text-xs font-medium text-gray-700 mb-1 block">Advanced</label>
+                <input
+                  id="maxAdvanced" name="maxAdvanced" type="number" min="0"
+                  value={formData.maxAdvanced} onChange={handleChange}
+                  placeholder="Unlimited" className="input"
+                />
+              </div>
             </div>
           </div>
 

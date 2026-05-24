@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { stripe } from '@/lib/stripe';
+import { sendConfirmationEmailForRegistration } from '@/lib/email';
 
 // Called by Stripe after successful payment — verifies session, marks paid, redirects to confirmation
 export async function GET(request: NextRequest) {
@@ -26,6 +27,11 @@ export async function GET(request: NextRequest) {
     }
 
     // Mark registration as paid (idempotent — safe to run even if webhook already did it)
+    const existing = await prisma.registration.findUnique({
+      where: { id: registrationId },
+      select: { paymentStatus: true },
+    });
+
     await prisma.registration.update({
       where: { id: registrationId },
       data: {
@@ -36,6 +42,12 @@ export async function GET(request: NextRequest) {
         stripeSessionId: session.id,
       },
     });
+
+    // Fire confirmation email exactly once (only when we were the one who
+    // flipped the status to PAID — the webhook handler guards against dupes too).
+    if (existing && existing.paymentStatus !== 'PAID') {
+      await sendConfirmationEmailForRegistration(registrationId);
+    }
 
     return NextResponse.redirect(`${appUrl}/confirmation/${registrationId}`);
   } catch (error) {

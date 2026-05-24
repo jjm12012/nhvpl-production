@@ -16,11 +16,21 @@ interface Event {
   price: number;
   currency: string;
   location?: string;
-  maxCapacity?: number;
+  maxBeginner?: number | null;
+  maxIntermediateA?: number | null;
+  maxIntermediateB?: number | null;
+  maxAdvanced?: number | null;
   isActive: boolean;
   _count?: {
     registrations: number;
   };
+}
+
+function totalCapacity(e: Event): number | null {
+  const caps = [e.maxBeginner, e.maxIntermediateA, e.maxIntermediateB, e.maxAdvanced]
+    .filter((c): c is number => typeof c === 'number');
+  if (caps.length === 0) return null;
+  return caps.reduce((sum, c) => sum + c, 0);
 }
 
 export default function EventsPage() {
@@ -200,8 +210,8 @@ export default function EventsPage() {
                     </td>
                     <td className="px-6 py-4 text-gray-900">
                       {event._count?.registrations || 0}
-                      {event.maxCapacity && (
-                        <span className="text-gray-500"> / {event.maxCapacity}</span>
+                      {totalCapacity(event) !== null && (
+                        <span className="text-gray-500"> / {totalCapacity(event)}</span>
                       )}
                     </td>
                     <td className="px-6 py-4">

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
@@ -11,16 +11,57 @@ import { registrationSchema, type RegistrationInput } from '@/lib/validations';
 import { formatPhone, divisionDescription } from '@/lib/utils';
 
 const DIVISIONS = [
-  { id: 'BEGINNER', label: 'Beginner' },
-  { id: 'INTERMEDIATE', label: 'Intermediate' },
-  { id: 'ADVANCED', label: 'Advanced' },
+  { id: 'BEGINNER', label: 'Beginner', capKey: 'maxBeginner' },
+  { id: 'INTERMEDIATE_A', label: 'Intermediate A', capKey: 'maxIntermediateA' },
+  { id: 'INTERMEDIATE_B', label: 'Intermediate B', capKey: 'maxIntermediateB' },
+  { id: 'ADVANCED', label: 'Advanced', capKey: 'maxAdvanced' },
 ] as const;
+
+interface ActiveEvent {
+  id: string;
+  maxBeginner: number | null;
+  maxIntermediateA: number | null;
+  maxIntermediateB: number | null;
+  maxAdvanced: number | null;
+  paidCountsByDivision?: Record<string, number>;
+}
 
 export default function RegistrationFormPage() {
   const router = useRouter();
   const params = useParams();
   const eventId = params.eventId as string;
   const [isLoading, setIsLoading] = useState(false);
+  const [activeEvent, setActiveEvent] = useState<ActiveEvent | null>(null);
+
+  useEffect(() => {
+    // Fetch capacity/paid counts so we can show "Full" and disable full divisions.
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('/api/events/active');
+        if (!res.ok) return;
+        const events = (await res.json()) as ActiveEvent[];
+        if (cancelled) return;
+        const match = events.find((e) => e.id === eventId);
+        if (match) setActiveEvent(match);
+      } catch {
+        // Non-fatal: form will still submit and be validated server-side.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [eventId]);
+
+  const isDivisionFull = (capKey: string): boolean => {
+    if (!activeEvent) return false;
+    const cap = (activeEvent as any)[capKey] as number | null | undefined;
+    if (cap === null || cap === undefined) return false;
+    const taken = activeEvent.paidCountsByDivision?.[
+      DIVISIONS.find((d) => d.capKey === capKey)?.id as string
+    ] ?? 0;
+    return taken >= cap;
+  };
 
   const {
     register,
@@ -207,25 +248,40 @@ export default function RegistrationFormPage() {
               <h2 className="text-xl font-bold text-gray-900 mb-6">Skill Division *</h2>
 
               <div className="space-y-4">
-                {DIVISIONS.map((division) => (
-                  <label
-                    key={division.id}
-                    className="flex items-start p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition"
-                  >
-                    <input
-                      {...register('division')}
-                      type="radio"
-                      value={division.id}
-                      className="mt-1 w-4 h-4 text-primary-600"
-                    />
-                    <div className="ml-4 flex-1">
-                      <p className="font-medium text-gray-900">{division.label}</p>
-                      <p className="text-sm text-gray-600">
-                        {divisionDescription(division.id as any)}
-                      </p>
-                    </div>
-                  </label>
-                ))}
+                {DIVISIONS.map((division) => {
+                  const full = isDivisionFull(division.capKey);
+                  return (
+                    <label
+                      key={division.id}
+                      className={`flex items-start p-4 border rounded-lg transition ${
+                        full
+                          ? 'border-gray-200 bg-gray-50 cursor-not-allowed opacity-60'
+                          : 'border-gray-300 cursor-pointer hover:bg-gray-50'
+                      }`}
+                    >
+                      <input
+                        {...register('division')}
+                        type="radio"
+                        value={division.id}
+                        disabled={full}
+                        className="mt-1 w-4 h-4 text-primary-600"
+                      />
+                      <div className="ml-4 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="font-medium text-gray-900">{division.label}</p>
+                          {full && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                              Full
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-600">
+                          {divisionDescription(division.id as any)}
+                        </p>
+                      </div>
+                    </label>
+                  );
+                })}
               </div>
 
               {errors.division && (
@@ -296,8 +352,9 @@ export default function RegistrationFormPage() {
                 </label>
                 <input
                   {...register('teamPreference')}
-                  placeholder="Name of one player you'd like to be grouped with"
+                  placeholder="e.g., Jane Doe"
                   className="input"
+                  maxLength={200}
                 />
                 <p className="text-xs text-gray-500 mt-1">
                   You can only choose one player you'd like to be grouped with.

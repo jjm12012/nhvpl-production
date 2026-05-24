@@ -93,7 +93,7 @@ export default async function HomePage() {
               New Haven Pickleball League
             </h1>
             <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-              Join us for an exciting 8-week competitive season. Build your skills, make new
+              Join us for an exciting 10-week competitive season. Build your skills, make new
               friends, and compete in a supportive community.
             </p>
             <div className="bg-white/95 backdrop-blur-sm rounded-lg p-8 mb-8 inline-block">
@@ -145,17 +145,17 @@ export default async function HomePage() {
               <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center mb-4">
                 <Trophy className="w-6 h-6 text-primary-600" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">3 Skill Divisions</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">4 Skill Divisions</h3>
               <p className="text-gray-600">
-                Play at your level with Beginner, Intermediate, and Advanced divisions to ensure
-                competitive balance.
+                Play at your level with Beginner, Intermediate A, Intermediate B, and Advanced
+                divisions to ensure competitive balance.
               </p>
             </div>
             <div className="card p-6">
               <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center mb-4">
                 <Clock className="w-6 h-6 text-primary-600" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">8-Week Season</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">10-Week Season</h3>
               <p className="text-gray-600">
                 Consistent Tuesday through Thursday evening matches throughout May and June.
                 Perfect for building momentum and friendships.

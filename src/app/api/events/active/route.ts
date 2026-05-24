@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import type { SkillLevel } from '@prisma/client';
 
 export async function GET() {
   try {
@@ -18,11 +19,14 @@ export async function GET() {
       },
       include: {
         registrations: {
+          // Only count completed (PAID) registrations toward the division cap.
+          // PENDING signups (step 1 completed, payment not yet made) do not hold a spot.
           where: {
             paymentStatus: 'PAID',
           },
           select: {
-            id: true, // just need count, but include id for counting
+            id: true,
+            division: true,
           },
         },
       },
@@ -31,27 +35,43 @@ export async function GET() {
       },
     });
 
-    // Transform response to include paidCount
-    const formattedEvents = events.map((event) => ({
-      id: event.id,
-      name: event.name,
-      description: event.description,
-      season: event.season,
-      year: event.year,
-      startDate: event.startDate,
-      endDate: event.endDate,
-      registrationOpen: event.registrationOpen,
-      registrationClose: event.registrationClose,
-      price: event.price,
-      currency: event.currency,
-      maxCapacity: event.maxCapacity,
-      location: event.location,
-      dayOfWeek: event.dayOfWeek,
-      isActive: event.isActive,
-      paidCount: event.registrations.length,
-      createdAt: event.createdAt,
-      updatedAt: event.updatedAt,
-    }));
+    // Transform response to include paidCount (total) and per-division counts
+    const formattedEvents = events.map((event) => {
+      const countsByDivision: Record<SkillLevel, number> = {
+        BEGINNER: 0,
+        INTERMEDIATE_A: 0,
+        INTERMEDIATE_B: 0,
+        ADVANCED: 0,
+      };
+      for (const r of event.registrations) {
+        countsByDivision[r.division] = (countsByDivision[r.division] || 0) + 1;
+      }
+
+      return {
+        id: event.id,
+        name: event.name,
+        description: event.description,
+        season: event.season,
+        year: event.year,
+        startDate: event.startDate,
+        endDate: event.endDate,
+        registrationOpen: event.registrationOpen,
+        registrationClose: event.registrationClose,
+        price: event.price,
+        currency: event.currency,
+        maxBeginner: event.maxBeginner,
+        maxIntermediateA: event.maxIntermediateA,
+        maxIntermediateB: event.maxIntermediateB,
+        maxAdvanced: event.maxAdvanced,
+        location: event.location,
+        dayOfWeek: event.dayOfWeek,
+        isActive: event.isActive,
+        paidCount: event.registrations.length,
+        paidCountsByDivision: countsByDivision,
+        createdAt: event.createdAt,
+        updatedAt: event.updatedAt,
+      };
+    });
 
     return NextResponse.json(formattedEvents);
   } catch (error) {

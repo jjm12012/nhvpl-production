@@ -59,13 +59,34 @@ async function getDashboardStats() {
         }),
       ]);
 
-    const spotsRemaining = activeEvent
-      ? Math.max(0, (activeEvent.maxCapacity || 0) - totalPaid)
+    const totalCap = activeEvent
+      ? [
+          activeEvent.maxBeginner,
+          activeEvent.maxIntermediateA,
+          activeEvent.maxIntermediateB,
+          activeEvent.maxAdvanced,
+        ]
+          .filter((c): c is number => typeof c === 'number')
+          .reduce((sum, c) => sum + c, 0)
+      : 0;
+
+    const hasAnyCap = activeEvent
+      ? [
+          activeEvent.maxBeginner,
+          activeEvent.maxIntermediateA,
+          activeEvent.maxIntermediateB,
+          activeEvent.maxAdvanced,
+        ].some((c) => typeof c === 'number')
+      : false;
+
+    const spotsRemaining = activeEvent && hasAnyCap
+      ? Math.max(0, totalCap - totalPaid)
       : null;
 
     const divisionData = [
       { name: 'Beginner', count: divisionBreakdown.find((d) => d.division === 'BEGINNER')?._count || 0 },
-      { name: 'Intermediate', count: divisionBreakdown.find((d) => d.division === 'INTERMEDIATE')?._count || 0 },
+      { name: 'Intermediate A', count: divisionBreakdown.find((d) => d.division === 'INTERMEDIATE_A')?._count || 0 },
+      { name: 'Intermediate B', count: divisionBreakdown.find((d) => d.division === 'INTERMEDIATE_B')?._count || 0 },
       { name: 'Advanced', count: divisionBreakdown.find((d) => d.division === 'ADVANCED')?._count || 0 },
     ];
 
