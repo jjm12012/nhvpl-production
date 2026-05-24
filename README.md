@@ -114,3 +114,7 @@ prisma/
 
 ### Custom Domain
 Add your domain (e.g., `register.nhvpickleball.com`) in Vercel project settings, then update DNS with your domain provider.
+
+## License
+
+Released under the [MIT License](LICENSE). You're free to use, modify, and distribute this code, provided the copyright notice is retained.
