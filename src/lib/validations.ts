@@ -82,3 +82,15 @@ export const eventSchema = z.object({
 });
 
 export type EventInput = z.infer<typeof eventSchema>;
+
+// Admin edit of a single editable content block. Keys/pages/labels are
+// seed-defined and never created or changed via the API — only the value and
+// its render format are editable.
+export const contentBlockUpdateSchema = z.object({
+  value: z
+    .string()
+    .max(10000, 'Content must be at most 10,000 characters'),
+  format: z.enum(['TEXT', 'MARKDOWN']),
+});
+
+export type ContentBlockUpdateInput = z.infer<typeof contentBlockUpdateSchema>;

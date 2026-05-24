@@ -45,6 +45,12 @@ async function AdminLayout({ children }: { children: React.ReactNode }) {
           >
             Registrants
           </Link>
+          <Link
+            href="/admin/content"
+            className="block px-4 py-3 rounded-lg hover:bg-gray-800 transition font-medium text-sm"
+          >
+            Page Content
+          </Link>
         </nav>
 
         {/* User Section */}

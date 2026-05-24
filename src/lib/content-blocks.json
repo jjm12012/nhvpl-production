@@ -1,0 +1,179 @@
+{
+  "blocks": [
+    {
+      "key": "register_landing_title",
+      "page": "register_landing",
+      "label": "Page title",
+      "value": "Select an Event",
+      "format": "TEXT"
+    },
+    {
+      "key": "register_landing_subtitle",
+      "page": "register_landing",
+      "label": "Page subtitle",
+      "value": "Choose which event you'd like to register for.",
+      "format": "TEXT"
+    },
+    {
+      "key": "register_landing_announcement",
+      "page": "register_landing",
+      "label": "Announcement / deadlines banner (leave blank to hide)",
+      "value": "",
+      "format": "MARKDOWN"
+    },
+    {
+      "key": "register_landing_empty_title",
+      "page": "register_landing",
+      "label": "\"No events open\" — heading",
+      "value": "No events are currently open for registration.",
+      "format": "TEXT"
+    },
+    {
+      "key": "register_landing_empty_subtitle",
+      "page": "register_landing",
+      "label": "\"No events open\" — subtext",
+      "value": "Please check back soon or contact us for more information.",
+      "format": "TEXT"
+    },
+    {
+      "key": "register_landing_footer_help",
+      "page": "register_landing",
+      "label": "Footer help line",
+      "value": "Need help? Email us at [nhvpickleball@gmail.com](mailto:nhvpickleball@gmail.com)",
+      "format": "MARKDOWN"
+    },
+    {
+      "key": "register_form_title",
+      "page": "register_form",
+      "label": "Form title",
+      "value": "Registration Form",
+      "format": "TEXT"
+    },
+    {
+      "key": "register_form_section_personal",
+      "page": "register_form",
+      "label": "Section heading — Personal Information",
+      "value": "Personal Information",
+      "format": "TEXT"
+    },
+    {
+      "key": "register_form_section_division",
+      "page": "register_form",
+      "label": "Section heading — Skill Division",
+      "value": "Skill Division",
+      "format": "TEXT"
+    },
+    {
+      "key": "register_form_section_leadership",
+      "page": "register_form",
+      "label": "Section heading — Leadership Opportunities",
+      "value": "Leadership Opportunities",
+      "format": "TEXT"
+    },
+    {
+      "key": "register_form_section_team",
+      "page": "register_form",
+      "label": "Section heading — Team & Preferences",
+      "value": "Team & Preferences",
+      "format": "TEXT"
+    },
+    {
+      "key": "register_form_section_acknowledgments",
+      "page": "register_form",
+      "label": "Section heading — Acknowledgments",
+      "value": "Acknowledgments",
+      "format": "TEXT"
+    },
+    {
+      "key": "register_form_captain_question",
+      "page": "register_form",
+      "label": "Question — team captain",
+      "value": "Interested in Being a Team Captain?",
+      "format": "TEXT"
+    },
+    {
+      "key": "register_form_monitor_question",
+      "page": "register_form",
+      "label": "Question — monitor/umpire",
+      "value": "Willing to Monitor/Umpire Matches?",
+      "format": "TEXT"
+    },
+    {
+      "key": "register_form_team_pref_help",
+      "page": "register_form",
+      "label": "Team preference helper text",
+      "value": "You can only choose one player you'd like to be grouped with.",
+      "format": "TEXT"
+    },
+    {
+      "key": "register_form_ack_commit",
+      "page": "register_form",
+      "label": "Checkbox — commitment",
+      "value": "I'll show up and give it my best — barring the unexpected, I plan to miss no more than 2 weeks of the season.",
+      "format": "TEXT"
+    },
+    {
+      "key": "register_form_ack_liability",
+      "page": "register_form",
+      "label": "Checkbox — liability waiver",
+      "value": "I acknowledge that pickleball is a physical activity and I assume all risk of injury. I waive any claims against NHVPL.",
+      "format": "TEXT"
+    },
+    {
+      "key": "register_form_ack_fun",
+      "page": "register_form",
+      "label": "Checkbox — fun / community",
+      "value": "I promise to have fun and be a positive part of the NHVPL community",
+      "format": "TEXT"
+    },
+    {
+      "key": "register_form_ack_conduct",
+      "page": "register_form",
+      "label": "Checkbox — code of conduct (supports a link)",
+      "value": "I have read and agree to the [NHVPL Code of Conduct](/NHVPL_CodeofConduct.pdf)",
+      "format": "MARKDOWN"
+    },
+    {
+      "key": "register_form_division_desc_beginner",
+      "page": "register_form",
+      "label": "Division description — Beginner",
+      "value": "New to pickleball or playing for less than 1 year",
+      "format": "TEXT"
+    },
+    {
+      "key": "register_form_division_desc_intermediate_a",
+      "page": "register_form",
+      "label": "Division description — Intermediate A",
+      "value": "3.0-3.5: Grasped basic strategies and incorporating spin and power into your game",
+      "format": "TEXT"
+    },
+    {
+      "key": "register_form_division_desc_intermediate_b",
+      "page": "register_form",
+      "label": "Division description — Intermediate B",
+      "value": "2.0-3.0: Understand the rules and looking to improve with consistency and basic strategy",
+      "format": "TEXT"
+    },
+    {
+      "key": "register_form_division_desc_advanced",
+      "page": "register_form",
+      "label": "Division description — Advanced",
+      "value": "Playing for 3+ years with consistent tournament play",
+      "format": "TEXT"
+    },
+    {
+      "key": "register_payment_notice",
+      "page": "register_payment",
+      "label": "Payment security notice",
+      "value": "🔒 Payments are securely processed by Stripe. We never store your card details.",
+      "format": "TEXT"
+    },
+    {
+      "key": "register_refund_policy",
+      "page": "register_payment",
+      "label": "Refund policy (leave blank to hide)",
+      "value": "",
+      "format": "MARKDOWN"
+    }
+  ]
+}

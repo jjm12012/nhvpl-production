@@ -9,12 +9,14 @@ import { toast } from 'sonner';
 import { ArrowRight, ArrowLeft, AlertCircle } from 'lucide-react';
 import { registrationSchema, type RegistrationInput } from '@/lib/validations';
 import { formatPhone, divisionDescription } from '@/lib/utils';
+import { useContent } from '@/lib/useContent';
+import Content from '@/components/Content';
 
 const DIVISIONS = [
-  { id: 'BEGINNER', label: 'Beginner', capKey: 'maxBeginner' },
-  { id: 'INTERMEDIATE_A', label: 'Intermediate A', capKey: 'maxIntermediateA' },
-  { id: 'INTERMEDIATE_B', label: 'Intermediate B', capKey: 'maxIntermediateB' },
-  { id: 'ADVANCED', label: 'Advanced', capKey: 'maxAdvanced' },
+  { id: 'BEGINNER', label: 'Beginner', capKey: 'maxBeginner', descKey: 'register_form_division_desc_beginner' },
+  { id: 'INTERMEDIATE_A', label: 'Intermediate A', capKey: 'maxIntermediateA', descKey: 'register_form_division_desc_intermediate_a' },
+  { id: 'INTERMEDIATE_B', label: 'Intermediate B', capKey: 'maxIntermediateB', descKey: 'register_form_division_desc_intermediate_b' },
+  { id: 'ADVANCED', label: 'Advanced', capKey: 'maxAdvanced', descKey: 'register_form_division_desc_advanced' },
 ] as const;
 
 interface ActiveEvent {
@@ -32,6 +34,7 @@ export default function RegistrationFormPage() {
   const eventId = params.eventId as string;
   const [isLoading, setIsLoading] = useState(false);
   const [activeEvent, setActiveEvent] = useState<ActiveEvent | null>(null);
+  const c = useContent('register_form');
 
   useEffect(() => {
     // Fetch capacity/paid counts so we can show "Full" and disable full divisions.
@@ -137,7 +140,7 @@ export default function RegistrationFormPage() {
         </div>
 
         <div className="card p-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-8">Registration Form</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-8">{c.register_form_title.value}</h1>
 
           <form onSubmit={handleSubmit(onSubmit, (formErrors) => {
             console.log('Validation errors:', formErrors);
@@ -159,7 +162,7 @@ export default function RegistrationFormPage() {
 
             {/* Personal Information */}
             <section>
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Personal Information</h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-6">{c.register_form_section_personal.value}</h2>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
                 <div>
@@ -245,7 +248,7 @@ export default function RegistrationFormPage() {
 
             {/* Skill Division */}
             <section className="border-t border-gray-200 pt-8">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Skill Division *</h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-6">{c.register_form_section_division.value} *</h2>
 
               <div className="space-y-4">
                 {DIVISIONS.map((division) => {
@@ -276,7 +279,7 @@ export default function RegistrationFormPage() {
                           )}
                         </div>
                         <p className="text-sm text-gray-600">
-                          {divisionDescription(division.id as any)}
+                          {(c[division.descKey]?.value) ?? divisionDescription(division.id as any)}
                         </p>
                       </div>
                     </label>
@@ -291,11 +294,11 @@ export default function RegistrationFormPage() {
 
             {/* Leadership Interest */}
             <section className="border-t border-gray-200 pt-8">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Leadership Opportunities</h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-6">{c.register_form_section_leadership.value}</h2>
 
               <div className="space-y-6">
                 <div>
-                  <label className="label">Interested in Being a Team Captain? *</label>
+                  <label className="label">{c.register_form_captain_question.value} *</label>
                   <div className="flex gap-6">
                     {[
                       { value: 'yes', label: 'Yes' },
@@ -318,7 +321,7 @@ export default function RegistrationFormPage() {
                 </div>
 
                 <div>
-                  <label className="label">Willing to Monitor/Umpire Matches? *</label>
+                  <label className="label">{c.register_form_monitor_question.value} *</label>
                   <div className="flex gap-6">
                     {[
                       { value: 'yes', label: 'Yes' },
@@ -344,7 +347,7 @@ export default function RegistrationFormPage() {
 
             {/* Team & Preferences */}
             <section className="border-t border-gray-200 pt-8">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Team & Preferences</h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-6">{c.register_form_section_team.value}</h2>
 
               <div>
                 <label htmlFor="teamPreference" className="label">
@@ -357,14 +360,14 @@ export default function RegistrationFormPage() {
                   maxLength={200}
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  You can only choose one player you'd like to be grouped with.
+                  {c.register_form_team_pref_help.value}
                 </p>
               </div>
             </section>
 
             {/* Waivers & Acknowledgments */}
             <section className="border-t border-gray-200 pt-8">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Acknowledgments *</h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-6">{c.register_form_section_acknowledgments.value} *</h2>
 
               <div className="space-y-4">
                 <label className="flex items-start gap-3 cursor-pointer p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
@@ -374,7 +377,7 @@ export default function RegistrationFormPage() {
                     className="mt-1 w-4 h-4 text-primary-600"
                   />
                   <span className="text-sm text-gray-900">
-                    I'll show up and give it my best — barring the unexpected, I plan to miss no more than 2 weeks of the season.
+                    {c.register_form_ack_commit.value}
                   </span>
                 </label>
                 {errors.canCommit && (
@@ -388,7 +391,7 @@ export default function RegistrationFormPage() {
                     className="mt-1 w-4 h-4 text-primary-600"
                   />
                   <span className="text-sm text-gray-900">
-                    I acknowledge that pickleball is a physical activity and I assume all risk of injury. I waive any claims against NHVPL.
+                    {c.register_form_ack_liability.value}
                   </span>
                 </label>
                 {errors.liabilityAck && (
@@ -402,7 +405,7 @@ export default function RegistrationFormPage() {
                     className="mt-1 w-4 h-4 text-primary-600"
                   />
                   <span className="text-sm text-gray-900">
-                    I promise to have fun and be a positive part of the NHVPL community
+                    {c.register_form_ack_fun.value}
                   </span>
                 </label>
                 {errors.funAck && (
@@ -415,17 +418,15 @@ export default function RegistrationFormPage() {
                     type="checkbox"
                     className="mt-1 w-4 h-4 text-primary-600"
                   />
-                  <span className="text-sm text-gray-900">
-                    I have read and agree to the{' '}
-                    <a
-                      href="/NHVPL_CodeofConduct.pdf"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary-600 hover:text-primary-700 underline font-medium"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      NHVPL Code of Conduct
-                    </a>
+                  <span
+                    className="text-sm text-gray-900"
+                    onClick={(e) => {
+                      // Let link clicks open the document without toggling the checkbox,
+                      // while clicks on the surrounding text still toggle it.
+                      if ((e.target as HTMLElement).closest('a')) e.stopPropagation();
+                    }}
+                  >
+                    <Content content={c.register_form_ack_conduct} inline />
                   </span>
                 </label>
                 {errors.conductAck && (

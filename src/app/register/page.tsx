@@ -6,6 +6,8 @@ import {
   formatCurrency,
   spotsRemaining,
 } from '@/lib/utils';
+import { getContentMap } from '@/lib/content';
+import Content from '@/components/Content';
 
 // FIX: force dynamic so registration page always shows live event data
 export const dynamic = 'force-dynamic';
@@ -48,6 +50,7 @@ async function getActiveEvents() {
 
 export default async function EventSelectionPage() {
   const events = await getActiveEvents();
+  const c = await getContentMap('register_landing');
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
@@ -63,19 +66,27 @@ export default async function EventSelectionPage() {
       {/* Main Content */}
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-12">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Select an Event</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+            {c.register_landing_title.value}
+          </h1>
           <p className="text-lg text-gray-600">
-            Choose which event you&apos;d like to register for.
+            {c.register_landing_subtitle.value}
           </p>
         </div>
+
+        {c.register_landing_announcement.value.trim() && (
+          <div className="mb-8 bg-primary-50 border border-primary-200 rounded-lg p-4 text-primary-900">
+            <Content content={c.register_landing_announcement} />
+          </div>
+        )}
 
         {events.length === 0 ? (
           <div className="card p-12 text-center">
             <p className="text-gray-600 mb-4">
-              No events are currently open for registration.
+              {c.register_landing_empty_title.value}
             </p>
             <p className="text-sm text-gray-500">
-              Please check back soon or contact us for more information.
+              {c.register_landing_empty_subtitle.value}
             </p>
           </div>
         ) : (
@@ -154,15 +165,9 @@ export default async function EventSelectionPage() {
       {/* Footer */}
       <footer className="bg-gray-900 text-white border-t border-gray-800 py-8 mt-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <p className="text-gray-400 text-sm text-center">
-            Need help? Email us at{' '}
-            <a
-              href="mailto:nhvpickleball@gmail.com"
-              className="text-primary-400 hover:text-primary-300"
-            >
-              nhvpickleball@gmail.com
-            </a>
-          </p>
+          <div className="text-gray-400 text-sm text-center">
+            <Content content={c.register_landing_footer_help} inline />
+          </div>
         </div>
       </footer>
     </div>

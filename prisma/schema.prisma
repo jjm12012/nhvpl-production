@@ -33,6 +33,11 @@ enum PaymentMethod {
   PAYPAL
 }
 
+enum ContentFormat {
+  TEXT
+  MARKDOWN
+}
+
 model Event {
   id                  String         @id @default(cuid())
   name                String
@@ -98,4 +103,24 @@ model AdminUser {
   name          String
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+}
+
+// Admin-editable site content. Each row is a single editable piece of text
+// keyed by a stable string (e.g. "register_form_title"). Public pages look
+// content up by key and fall back to a built-in default if a row is missing,
+// so the site never breaks when a key is absent. `page` groups blocks for the
+// admin UI; `format` selects plain-text vs. sanitized markdown rendering.
+// Keys are seed-defined and edit-only — admins cannot create or delete keys.
+model ContentBlock {
+  id        String        @id @default(cuid())
+  key       String        @unique
+  page      String
+  label     String
+  value     String        @db.Text
+  format    ContentFormat @default(TEXT)
+  updatedBy String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([page])
 }

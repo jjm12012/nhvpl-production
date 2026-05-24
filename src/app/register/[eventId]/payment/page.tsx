@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { toast } from 'sonner';
 import { ArrowLeft, Loader2, CreditCard } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
+import { useContent } from '@/lib/useContent';
+import Content from '@/components/Content';
 
 function PaymentPageContent() {
   const router = useRouter();
@@ -14,6 +16,7 @@ function PaymentPageContent() {
   const eventId = params.eventId as string;
   const registrationId = searchParams.get('registrationId') as string;
   const cancelled = searchParams.get('cancelled');
+  const c = useContent('register_payment');
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -162,10 +165,17 @@ function PaymentPageContent() {
 
           {/* Security Note */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p className="text-sm text-blue-900">
-              🔒 Payments are securely processed by Stripe. We never store your card details.
-            </p>
+            <div className="text-sm text-blue-900">
+              <Content content={c.register_payment_notice} inline />
+            </div>
           </div>
+
+          {/* Refund Policy (hidden when blank) */}
+          {c.register_refund_policy.value.trim() && (
+            <div className="mt-4 text-sm text-gray-600">
+              <Content content={c.register_refund_policy} />
+            </div>
+          )}
         </div>
 
         {/* Support */}
