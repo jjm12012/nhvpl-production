@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { eventSchema } from '@/lib/validations';
+import { eventSchema, merchandiseEventSchema } from '@/lib/validations';
+import { merchEventData } from '@/lib/merch';
 import { ZodError } from 'zod';
 import { auth } from '@/auth';
 
@@ -20,7 +21,7 @@ export async function GET(request: NextRequest) {
 
     const events = await prisma.event.findMany({
       orderBy: { startDate: 'desc' },
-      include: { _count: { select: { registrations: true } } },
+      include: { _count: { select: { registrations: true, merchandiseOrders: true } } },
     });
 
     return NextResponse.json(events);
@@ -39,6 +40,18 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
+
+    // Merchandise events use a reduced field set. League-specific NOT NULL
+    // columns (season, year, dates, price) are filled from the order window
+    // and unit price so the rest of the app keeps working unchanged.
+    if (body.formType === 'MERCHANDISE') {
+      const validated = merchandiseEventSchema.parse(body);
+      const event = await prisma.event.create({
+        data: merchEventData(validated),
+      });
+      return NextResponse.json(event, { status: 201 });
+    }
+
     const validatedData = eventSchema.parse(body);
 
     const event = await prisma.event.create({

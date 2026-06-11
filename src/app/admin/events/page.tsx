@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Edit2, Plus, Trash2, Loader2, AlertCircle } from 'lucide-react';
+import { Edit2, Plus, Trash2, Loader2, AlertCircle, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatDate, formatCurrency } from '@/lib/utils';
 import EventModal from '@/components/EventModal';
@@ -21,8 +21,14 @@ interface Event {
   maxIntermediateB?: number | null;
   maxAdvanced?: number | null;
   isActive: boolean;
+  formType?: 'LEAGUE' | 'MERCHANDISE';
+  unitPrice?: number | null;
+  availableColors?: string[];
+  orderOpenDate?: string | null;
+  orderCloseDate?: string | null;
   _count?: {
     registrations: number;
+    merchandiseOrders?: number;
   };
 }
 
@@ -194,7 +200,13 @@ export default function EventsPage() {
                       <div>
                         <p className="font-medium text-gray-900">{event.name}</p>
                         <p className="text-xs text-gray-500">
-                          {event.season} {event.year}
+                          {event.formType === 'MERCHANDISE' ? (
+                            <span className="inline-flex px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 font-medium">
+                              Merch
+                            </span>
+                          ) : (
+                            <>{event.season} {event.year}</>
+                          )}
                         </p>
                       </div>
                     </td>
@@ -209,9 +221,18 @@ export default function EventsPage() {
                       {formatCurrency(event.price, event.currency)}
                     </td>
                     <td className="px-6 py-4 text-gray-900">
-                      {event._count?.registrations || 0}
-                      {totalCapacity(event) !== null && (
-                        <span className="text-gray-500"> / {totalCapacity(event)}</span>
+                      {event.formType === 'MERCHANDISE' ? (
+                        <>
+                          {event._count?.merchandiseOrders || 0}
+                          <span className="text-gray-500 text-xs"> orders</span>
+                        </>
+                      ) : (
+                        <>
+                          {event._count?.registrations || 0}
+                          {totalCapacity(event) !== null && (
+                            <span className="text-gray-500"> / {totalCapacity(event)}</span>
+                          )}
+                        </>
                       )}
                     </td>
                     <td className="px-6 py-4">
@@ -228,6 +249,15 @@ export default function EventsPage() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
+                        {event.formType === 'MERCHANDISE' && (
+                          <a
+                            href={`/api/admin/export/merch-csv?eventId=${event.id}`}
+                            className="p-2 text-gray-600 hover:text-primary-600 transition"
+                            title="Download orders CSV"
+                          >
+                            <Download className="w-4 h-4" />
+                          </a>
+                        )}
                         <button
                           onClick={() => handleOpenModal(event)}
                           className="p-2 text-gray-600 hover:text-primary-600 transition"

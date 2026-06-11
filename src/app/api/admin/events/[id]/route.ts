@@ -1,7 +1,8 @@
 import { auth } from '@/auth';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { eventSchema } from '@/lib/validations';
+import { eventSchema, merchandiseEventSchema } from '@/lib/validations';
+import { merchEventData } from '@/lib/merch';
 import { ZodError } from 'zod';
 
 async function checkAuth() {
@@ -23,12 +24,23 @@ export async function PUT(
 
     const { id } = params;
     const body = await request.json();
-    const validatedData = eventSchema.parse(body);
 
     const event = await prisma.event.findUnique({ where: { id } });
     if (!event) {
       return NextResponse.json({ error: 'Event not found' }, { status: 404 });
     }
+
+    // Merchandise events update via the reduced merch field set.
+    if (body.formType === 'MERCHANDISE') {
+      const validated = merchandiseEventSchema.parse(body);
+      const updated = await prisma.event.update({
+        where: { id },
+        data: merchEventData(validated),
+      });
+      return NextResponse.json(updated);
+    }
+
+    const validatedData = eventSchema.parse(body);
 
     const updatedEvent = await prisma.event.update({
       where: { id },

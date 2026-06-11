@@ -10,6 +10,9 @@ export async function GET() {
     const events = await prisma.event.findMany({
       where: {
         isActive: true,
+        // Merch events have their own public form at /order/[eventId] and
+        // must not appear in the league registration listing.
+        formType: 'LEAGUE',
         registrationOpen: {
           lte: now,
         },

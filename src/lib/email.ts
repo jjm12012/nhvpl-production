@@ -131,6 +131,123 @@ export async function sendConfirmationEmailForRegistration(
   });
 }
 
+// ---------------------------------------------------------------------------
+// Merchandise order emails
+// ---------------------------------------------------------------------------
+
+interface MerchOrderEmailData {
+  eventName: string;
+  name: string;
+  email: string;
+  size: string;
+  color: string;
+  quantity: number;
+  totalAmount: number;
+  createdAt: Date;
+}
+
+function renderMerchOrderHtml(data: MerchOrderEmailData, heading: string, intro: string): string {
+  return `<!doctype html>
+<html>
+  <body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f9fafb;margin:0;padding:24px;color:#111827;">
+    <div style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e5e7eb;">
+      <div style="padding:24px 24px 0 24px;">
+        <h1 style="margin:0 0 8px 0;font-size:22px;color:#111827;">${heading}</h1>
+        <p style="margin:0 0 16px 0;color:#4b5563;font-size:14px;">${intro}</p>
+      </div>
+
+      <div style="padding:0 24px;">
+        <h2 style="margin:24px 0 8px 0;font-size:16px;color:#111827;">Order Details</h2>
+        <table style="width:100%;border-collapse:collapse;font-size:14px;color:#374151;">
+          <tr><td style="padding:4px 0;width:140px;color:#6b7280;">Name</td><td style="padding:4px 0;">${escapeHtml(data.name)}</td></tr>
+          <tr><td style="padding:4px 0;color:#6b7280;">Event</td><td style="padding:4px 0;">${escapeHtml(data.eventName)}</td></tr>
+          <tr><td style="padding:4px 0;color:#6b7280;">Size</td><td style="padding:4px 0;">${escapeHtml(data.size)}</td></tr>
+          <tr><td style="padding:4px 0;color:#6b7280;">Color</td><td style="padding:4px 0;">${escapeHtml(data.color)}</td></tr>
+          <tr><td style="padding:4px 0;color:#6b7280;">Quantity</td><td style="padding:4px 0;">${data.quantity}</td></tr>
+          <tr><td style="padding:4px 0;color:#6b7280;">Total paid</td><td style="padding:4px 0;"><strong>${escapeHtml(formatCurrency(data.totalAmount))}</strong></td></tr>
+          <tr><td style="padding:4px 0;color:#6b7280;">Order date</td><td style="padding:4px 0;">${formatDate(data.createdAt)}</td></tr>
+        </table>
+
+        <p style="margin:24px 0 0 0;font-size:14px;color:#374151;">
+          Questions? Email us at
+          <a href="mailto:${LEAGUE_CONTACT}" style="color:#2563eb;text-decoration:none;">${LEAGUE_CONTACT}</a>.
+        </p>
+      </div>
+
+      <div style="padding:20px 24px;margin-top:24px;background:#f3f4f6;color:#6b7280;font-size:12px;text-align:center;">
+        © ${new Date().getFullYear()} New Haven Pickleball League
+      </div>
+    </div>
+  </body>
+</html>`;
+}
+
+// Send buyer confirmation + admin notification for a paid merchandise order.
+// Called exactly once per order by whichever writer created the row
+// (webhook or success-page confirm). Email failures are logged, not thrown.
+export async function sendMerchOrderEmails(orderId: string): Promise<void> {
+  const { prisma } = await import('./prisma');
+  const order = await prisma.merchandiseOrder.findUnique({
+    where: { id: orderId },
+    include: { event: { select: { name: true } } },
+  });
+  if (!order) {
+    console.warn(`[email] merch order ${orderId} not found, skipping emails`);
+    return;
+  }
+
+  if (!resend) {
+    console.warn(`[email] RESEND_API_KEY not set; skipping merch order emails for ${orderId}`);
+    return;
+  }
+
+  const data: MerchOrderEmailData = {
+    eventName: order.event.name,
+    name: order.name,
+    email: order.email,
+    size: order.size,
+    color: order.color,
+    quantity: order.quantity,
+    totalAmount: Number(order.totalAmount),
+    createdAt: order.createdAt,
+  };
+
+  // Buyer confirmation
+  try {
+    await resend.emails.send({
+      from: FROM_ADDRESS,
+      to: order.email,
+      subject: 'Your shirt order is confirmed! 🎽',
+      html: renderMerchOrderHtml(
+        data,
+        `Order confirmed, ${escapeHtml(order.name.split(' ')[0])}!`,
+        "Thanks for your order. Here's a copy of the details for your records."
+      ),
+    });
+    console.log(`[email] merch confirmation sent to ${order.email} for order ${orderId}`);
+  } catch (error) {
+    console.error('[email] failed to send merch buyer confirmation:', error);
+  }
+
+  // Admin notification
+  const adminEmail = process.env.ADMIN_EMAIL || LEAGUE_CONTACT;
+  try {
+    await resend.emails.send({
+      from: FROM_ADDRESS,
+      to: adminEmail,
+      subject: `New shirt order — ${order.name}`,
+      html: renderMerchOrderHtml(
+        data,
+        'New shirt order received',
+        `${escapeHtml(order.name)} (${escapeHtml(order.email)}) just placed an order.`
+      ),
+    });
+    console.log(`[email] merch admin notification sent to ${adminEmail} for order ${orderId}`);
+  } catch (error) {
+    console.error('[email] failed to send merch admin notification:', error);
+  }
+}
+
 export async function sendConfirmationEmail(data: ConfirmationEmailData): Promise<void> {
   if (!resend) {
     console.warn(

@@ -46,6 +46,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Merch events take orders at /order/[eventId], not league registrations.
+    if (event.formType !== 'LEAGUE') {
+      return NextResponse.json(
+        { error: 'This event does not accept league registrations' },
+        { status: 400 }
+      );
+    }
+
     // Check registration window is open
     const now = new Date();
     if (now < event.registrationOpen) {

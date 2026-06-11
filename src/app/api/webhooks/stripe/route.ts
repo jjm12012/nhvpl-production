@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { stripe } from '@/lib/stripe';
 import { sendConfirmationEmailForRegistration } from '@/lib/email';
+import { isMerchCheckoutSession, recordPaidMerchOrder } from '@/lib/merch-orders';
 
 export async function POST(request: NextRequest) {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -30,6 +31,16 @@ export async function POST(request: NextRequest) {
     // Handle successful checkout
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object;
+
+      // Merchandise orders: insert the order row + fire emails (idempotent —
+      // the success-page confirm endpoint may have already recorded it).
+      if (isMerchCheckoutSession(session)) {
+        if (session.payment_status === 'paid') {
+          await recordPaidMerchOrder(session);
+        }
+        return NextResponse.json({ received: true });
+      }
+
       const registrationId = session.metadata?.registrationId;
 
       if (!registrationId) {

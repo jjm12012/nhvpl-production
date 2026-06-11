@@ -9,7 +9,7 @@
 // ============================================================
 
 import Link from 'next/link';
-import { ArrowRight, Trophy, Clock, Users } from 'lucide-react';
+import { ArrowRight, Trophy, Clock, Users, ShoppingBag } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 
 // FIX: force server-side render on every request so isActive changes
@@ -21,6 +21,9 @@ async function getActiveEvents() {
     const events = await prisma.event.findMany({
       where: {
         isActive: true,
+        // Only league events drive the homepage "registration open" state;
+        // merch events live at /order/[eventId].
+        formType: 'LEAGUE',
         registrationOpen: {
           lte: new Date(),
         },
@@ -43,8 +46,41 @@ async function getActiveEvents() {
   }
 }
 
+// Active merchandise events whose order window is currently open.
+// These render as "Order Now" cards linking to the public form at
+// /order/[eventId] — without this, merch events created in admin are
+// unreachable from the customer-facing site.
+async function getOpenMerchEvents() {
+  try {
+    const now = new Date();
+    const events = await prisma.event.findMany({
+      where: {
+        isActive: true,
+        formType: 'MERCHANDISE',
+        orderOpenDate: { lte: now },
+        orderCloseDate: { gte: now },
+      },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        unitPrice: true,
+        orderCloseDate: true,
+      },
+      orderBy: { orderCloseDate: 'asc' },
+    });
+    return events;
+  } catch (error) {
+    console.error('Failed to fetch open merch events:', error);
+    return [];
+  }
+}
+
 export default async function HomePage() {
-  const activeEvents = await getActiveEvents();
+  const [activeEvents, merchEvents] = await Promise.all([
+    getActiveEvents(),
+    getOpenMerchEvents(),
+  ]);
   const hasActiveEvent = activeEvents.length > 0;
 
   return (
@@ -116,16 +152,29 @@ export default async function HomePage() {
                 </div>
               </div>
             </div>
-            {hasActiveEvent ? (
-              <Link href="/register" className="btn-primary gap-2 mb-6 inline-flex">
-                Register Now
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-            ) : (
-              <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-6 py-3 rounded-lg mb-6 border border-white/30">
-                <span className="text-white font-medium">Registration is currently closed — check back soon!</span>
-              </div>
-            )}
+            <div className="flex flex-wrap items-center justify-center gap-4 mb-6">
+              {hasActiveEvent ? (
+                <Link href="/register" className="btn-primary gap-2 inline-flex">
+                  Register Now
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              ) : (
+                <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-6 py-3 rounded-lg border border-white/30">
+                  <span className="text-white font-medium">Registration is currently closed — check back soon!</span>
+                </div>
+              )}
+              {/* Hero CTA for an open merch order window — links to the first
+                  open merch event's public form so it's visible without scrolling */}
+              {merchEvents.length > 0 && (
+                <Link
+                  href={`/order/${merchEvents[0].id}`}
+                  className="inline-flex items-center gap-2 bg-white text-primary-600 font-semibold px-6 py-3 rounded-lg hover:bg-primary-50 transition shadow-sm"
+                >
+                  <ShoppingBag className="w-4 h-4" />
+                  Order T-Shirts
+                </Link>
+              )}
+            </div>
             <p className="text-white/75 text-sm">
               Questions? Email us at{' '}
               <a href="mailto:nhvpickleball@gmail.com" className="underline hover:text-white">
@@ -174,6 +223,50 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Merch Section — only rendered when a merch order window is open */}
+      {merchEvents.length > 0 && (
+        <section className="py-16 sm:py-20 bg-white">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 className="text-3xl font-bold text-center mb-12 text-gray-900">League Merch</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+              {merchEvents.map((event) => (
+                <div key={event.id} className="card p-6 flex flex-col">
+                  <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center mb-4">
+                    <ShoppingBag className="w-6 h-6 text-primary-600" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">{event.name}</h3>
+                  {event.description && (
+                    <p className="text-gray-600 mb-4">{event.description}</p>
+                  )}
+                  <div className="mt-auto flex items-center justify-between gap-4">
+                    <div>
+                      {event.unitPrice != null && (
+                        <p className="text-lg font-bold text-primary-600">
+                          ${Number(event.unitPrice).toFixed(2)}
+                        </p>
+                      )}
+                      {event.orderCloseDate && (
+                        <p className="text-xs text-gray-500">
+                          Order by{' '}
+                          {new Date(event.orderCloseDate).toLocaleDateString('en-US', {
+                            month: 'long',
+                            day: 'numeric',
+                          })}
+                        </p>
+                      )}
+                    </div>
+                    <Link href={`/order/${event.id}`} className="btn-primary gap-2 inline-flex">
+                      Order Now
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* CTA Section */}
       <section className="py-16 sm:py-20 bg-primary-50">

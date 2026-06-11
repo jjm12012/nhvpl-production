@@ -83,6 +83,69 @@ export const eventSchema = z.object({
 
 export type EventInput = z.infer<typeof eventSchema>;
 
+// ---------------------------------------------------------------------------
+// Merchandise (shirt order) feature
+// ---------------------------------------------------------------------------
+
+// Hardcoded shirt sizes (not admin-configurable).
+export const SHIRT_SIZES = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'] as const;
+
+// Admin creates/edits a merchandise event with a reduced field set.
+// Colors are entered as a comma-separated string and stored as TEXT[].
+export const merchandiseEventSchema = z.object({
+  formType: z.literal('MERCHANDISE'),
+  name: z
+    .string()
+    .min(1, 'Event name is required')
+    .max(255, 'Event name must be at most 255 characters'),
+  description: z.string().optional(),
+  unitPrice: z.coerce.number().positive('Unit price must be positive'),
+  availableColors: z
+    .string()
+    .min(1, 'At least one color is required')
+    .transform((value) =>
+      value
+        .split(',')
+        .map((c) => c.trim())
+        .filter(Boolean)
+    )
+    .refine((colors) => colors.length > 0, {
+      message: 'At least one color is required',
+    }),
+  orderOpenDate: z.coerce.date(),
+  orderCloseDate: z.coerce.date(),
+  isActive: z.boolean().default(true),
+}).refine((data) => data.orderOpenDate < data.orderCloseDate, {
+  message: 'Order open date must be before close date',
+  path: ['orderCloseDate'],
+});
+
+export type MerchandiseEventInput = z.infer<typeof merchandiseEventSchema>;
+
+// Public shirt order form submission (pre-Stripe checkout).
+export const merchandiseOrderSchema = z.object({
+  eventId: z.string().min(1, 'Event ID is required'),
+  name: z
+    .string()
+    .min(2, 'Full name must be at least 2 characters')
+    .max(100, 'Full name must be at most 100 characters')
+    .trim(),
+  email: z
+    .string()
+    .email('Invalid email address')
+    .toLowerCase(),
+  size: z.enum(SHIRT_SIZES, {
+    errorMap: () => ({ message: 'Please select a shirt size' }),
+  }),
+  color: z.string().min(1, 'Please select a shirt color'),
+  quantity: z.coerce
+    .number()
+    .int('Quantity must be a whole number')
+    .min(1, 'Quantity must be at least 1'),
+});
+
+export type MerchandiseOrderInput = z.infer<typeof merchandiseOrderSchema>;
+
 // Admin edit of a single editable content block. Keys/pages/labels are
 // seed-defined and never created or changed via the API — only the value and
 // its render format are editable.

@@ -21,6 +21,18 @@ interface Event {
   maxIntermediateB?: number | null;
   maxAdvanced?: number | null;
   isActive: boolean;
+  formType?: 'LEAGUE' | 'MERCHANDISE';
+  unitPrice?: number | null;
+  availableColors?: string[];
+  orderOpenDate?: Date | string | null;
+  orderCloseDate?: Date | string | null;
+}
+
+// Format a date value for a datetime-local input (YYYY-MM-DDTHH:mm).
+function toDateTimeLocal(value: Date | string | null | undefined): string {
+  if (!value) return '';
+  const iso = value instanceof Date ? value.toISOString() : value;
+  return iso.slice(0, 16);
 }
 
 interface EventModalProps {
@@ -31,6 +43,15 @@ interface EventModalProps {
 
 export default function EventModal({ event, onClose, onSave }: EventModalProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [formType, setFormType] = useState<'LEAGUE' | 'MERCHANDISE'>(
+    event?.formType || 'LEAGUE'
+  );
+  const [merchData, setMerchData] = useState({
+    unitPrice: '',
+    availableColors: '',
+    orderOpenDate: '',
+    orderCloseDate: '',
+  });
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -80,6 +101,13 @@ export default function EventModal({ event, onClose, onSave }: EventModalProps) 
         maxAdvanced: event.maxAdvanced != null ? event.maxAdvanced.toString() : '',
         isActive: event.isActive,
       });
+      setFormType(event.formType || 'LEAGUE');
+      setMerchData({
+        unitPrice: event.unitPrice != null ? event.unitPrice.toString() : '',
+        availableColors: (event.availableColors || []).join(', '),
+        orderOpenDate: toDateTimeLocal(event.orderOpenDate),
+        orderCloseDate: toDateTimeLocal(event.orderCloseDate),
+      });
     }
   }, [event]);
 
@@ -87,6 +115,20 @@ export default function EventModal({ event, onClose, onSave }: EventModalProps) 
     e.preventDefault();
     setIsLoading(true);
     try {
+      if (formType === 'MERCHANDISE') {
+        await onSave({
+          formType: 'MERCHANDISE',
+          name: formData.name,
+          description: formData.description || undefined,
+          unitPrice: parseFloat(merchData.unitPrice),
+          availableColors: merchData.availableColors,
+          orderOpenDate: merchData.orderOpenDate,
+          orderCloseDate: merchData.orderCloseDate,
+          isActive: formData.isActive,
+        });
+        return;
+      }
+
       const submitData = {
         ...formData,
         year: parseInt(formData.year.toString()),
@@ -113,6 +155,11 @@ export default function EventModal({ event, onClose, onSave }: EventModalProps) 
     }));
   };
 
+  const handleMerchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setMerchData((prev) => ({ ...prev, [name]: value }));
+  };
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -128,6 +175,30 @@ export default function EventModal({ event, onClose, onSave }: EventModalProps) 
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          {/* Form Type */}
+          <div>
+            <label className="label">Form Type *</label>
+            <div className="grid grid-cols-2 gap-2 p-1 bg-gray-100 rounded-lg">
+              {([
+                { value: 'LEAGUE', label: 'League Registration' },
+                { value: 'MERCHANDISE', label: 'Merchandise Order' },
+              ] as const).map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setFormType(option.value)}
+                  className={`py-2 px-3 rounded-md text-sm font-medium transition ${
+                    formType === option.value
+                      ? 'bg-white text-gray-900 shadow'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Name */}
           <div>
             <label htmlFor="name" className="label">Event Name *</label>
@@ -148,6 +219,54 @@ export default function EventModal({ event, onClose, onSave }: EventModalProps) 
             />
           </div>
 
+          {/* Merchandise-only fields */}
+          {formType === 'MERCHANDISE' && (
+            <>
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <label htmlFor="unitPrice" className="label">Unit Price (USD) *</label>
+                  <input
+                    id="unitPrice" name="unitPrice" type="number" step="0.01" min="0.01"
+                    value={merchData.unitPrice} onChange={handleMerchChange}
+                    placeholder="25.00" className="input" required
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Price per shirt</p>
+                </div>
+                <div>
+                  <label htmlFor="availableColors" className="label">Available Colors *</label>
+                  <input
+                    id="availableColors" name="availableColors" type="text"
+                    value={merchData.availableColors} onChange={handleMerchChange}
+                    placeholder="Navy, White, Grey" className="input" required
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Comma-separated list</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <label htmlFor="orderOpenDate" className="label">Order Open Date *</label>
+                  <input
+                    id="orderOpenDate" name="orderOpenDate" type="datetime-local"
+                    value={merchData.orderOpenDate} onChange={handleMerchChange}
+                    className="input" required
+                  />
+                </div>
+                <div>
+                  <label htmlFor="orderCloseDate" className="label">Order Close Date *</label>
+                  <input
+                    id="orderCloseDate" name="orderCloseDate" type="datetime-local"
+                    value={merchData.orderCloseDate} onChange={handleMerchChange}
+                    className="input" required
+                  />
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* League-only fields */}
+          {formType === 'LEAGUE' && (
+          <>
           {/* Season & Year */}
           <div className="grid grid-cols-2 gap-6">
             <div>
@@ -279,6 +398,8 @@ export default function EventModal({ event, onClose, onSave }: EventModalProps) 
               </div>
             </div>
           </div>
+          </>
+          )}
 
           {/* Active */}
           <div className="flex items-center gap-3">

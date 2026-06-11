@@ -6,8 +6,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
@@ -38,31 +38,69 @@ enum ContentFormat {
   MARKDOWN
 }
 
+enum FormType {
+  LEAGUE
+  MERCHANDISE
+}
+
 model Event {
-  id                  String         @id @default(cuid())
-  name                String
-  description         String?
-  season              String
-  year                Int
-  startDate           DateTime
-  endDate             DateTime
-  registrationOpen    DateTime
-  registrationClose   DateTime
-  price               Decimal        @db.Decimal(10, 2)
-  currency            String         @default("USD")
-  maxBeginner         Int?
-  maxIntermediateA    Int?
-  maxIntermediateB    Int?
-  maxAdvanced         Int?
-  location            String?
-  dayOfWeek           String?
-  isActive            Boolean        @default(true)
-  createdAt           DateTime       @default(now())
-  updatedAt           DateTime       @updatedAt
-  registrations       Registration[]
+  id                String         @id @default(cuid())
+  name              String
+  description       String?
+  season            String
+  year              Int
+  startDate         DateTime
+  endDate           DateTime
+  registrationOpen  DateTime
+  registrationClose DateTime
+  price             Decimal        @db.Decimal(10, 2)
+  currency          String         @default("USD")
+  maxBeginner       Int?
+  maxIntermediateA  Int?
+  maxIntermediateB  Int?
+  maxAdvanced       Int?
+  location          String?
+  dayOfWeek         String?
+  isActive          Boolean        @default(true)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  registrations     Registration[]
+
+  // Merchandise order form support. formType selects which public form the
+  // event renders; existing events default to LEAGUE with NULL merch fields.
+  formType          FormType           @default(LEAGUE)
+  unitPrice         Decimal?           @db.Decimal(10, 2) // price per shirt
+  availableColors   String[]           @default([]) // e.g. ['Navy', 'White', 'Grey']
+  orderOpenDate     DateTime?
+  orderCloseDate    DateTime?
+  merchandiseOrders MerchandiseOrder[]
 
   @@index([isActive])
   @@index([year, season])
+}
+
+// One row per submitted shirt order. No cart/multi-item logic: each form
+// submission = one Stripe transaction = one row here. Rows are written by the
+// Stripe webhook (and the success-page confirm endpoint, idempotently) only
+// after payment succeeds.
+model MerchandiseOrder {
+  id                    String   @id @default(cuid())
+  eventId               String
+  event                 Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  createdAt             DateTime @default(now())
+  name                  String
+  email                 String
+  size                  String
+  color                 String
+  quantity              Int      @default(1)
+  unitPrice             Decimal  @db.Decimal(10, 2)
+  totalAmount           Decimal  @db.Decimal(10, 2) // quantity * unitPrice
+  stripeSessionId       String?  @unique
+  stripePaymentIntentId String?
+  stripePaymentStatus   String   @default("pending") // 'pending' | 'paid' | 'refunded'
+
+  @@index([eventId])
+  @@index([email])
 }
 
 model Registration {
@@ -97,12 +135,12 @@ model Registration {
 }
 
 model AdminUser {
-  id            String   @id @default(cuid())
-  email         String   @unique
-  passwordHash  String
-  name          String
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 // Admin-editable site content. Each row is a single editable piece of text
