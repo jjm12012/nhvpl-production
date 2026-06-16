@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
           price_data: {
             currency: 'usd',
             product_data: {
-              name: `${event.name} - ${data.color} / ${data.size}`,
+              name: `${event.name} - ${data.fit} / ${data.color} / ${data.size}`,
             },
             unit_amount: unitPriceInCents,
           },
@@ -60,6 +60,7 @@ export async function POST(request: NextRequest) {
         event_id: event.id,
         name: data.name,
         email: data.email,
+        fit: data.fit,
         size: data.size,
         color: data.color,
         quantity: String(data.quantity),

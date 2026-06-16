@@ -7,7 +7,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
 import { Loader2, ShoppingBag, AlertCircle } from 'lucide-react';
-import { merchandiseOrderSchema, SHIRT_SIZES, type MerchandiseOrderInput } from '@/lib/validations';
+import { merchandiseOrderSchema, SHIRT_SIZES, SHIRT_FITS, type MerchandiseOrderInput } from '@/lib/validations';
 import { formatCurrency } from '@/lib/utils';
 
 interface MerchEvent {
@@ -148,6 +148,18 @@ export default function OrderFormPage() {
             <label htmlFor="email" className="label">Email *</label>
             <input id="email" type="email" className="input" placeholder="jane@example.com" {...register('email')} />
             {errors.email && <p className="text-sm text-red-600 mt-1">{errors.email.message}</p>}
+          </div>
+
+          {/* Fit */}
+          <div>
+            <label htmlFor="fit" className="label">Fit *</label>
+            <select id="fit" className="input" defaultValue="" {...register('fit')}>
+              <option value="" disabled>Select a fit</option>
+              {SHIRT_FITS.map((fit) => (
+                <option key={fit} value={fit}>{fit}</option>
+              ))}
+            </select>
+            {errors.fit && <p className="text-sm text-red-600 mt-1">{errors.fit.message}</p>}
           </div>
 
           {/* Size & Color */}

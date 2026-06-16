@@ -139,6 +139,7 @@ interface MerchOrderEmailData {
   eventName: string;
   name: string;
   email: string;
+  fit: string | null;
   size: string;
   color: string;
   quantity: number;
@@ -161,6 +162,7 @@ function renderMerchOrderHtml(data: MerchOrderEmailData, heading: string, intro:
         <table style="width:100%;border-collapse:collapse;font-size:14px;color:#374151;">
           <tr><td style="padding:4px 0;width:140px;color:#6b7280;">Name</td><td style="padding:4px 0;">${escapeHtml(data.name)}</td></tr>
           <tr><td style="padding:4px 0;color:#6b7280;">Event</td><td style="padding:4px 0;">${escapeHtml(data.eventName)}</td></tr>
+          ${data.fit ? `<tr><td style="padding:4px 0;color:#6b7280;">Fit</td><td style="padding:4px 0;">${escapeHtml(data.fit)}</td></tr>` : ''}
           <tr><td style="padding:4px 0;color:#6b7280;">Size</td><td style="padding:4px 0;">${escapeHtml(data.size)}</td></tr>
           <tr><td style="padding:4px 0;color:#6b7280;">Color</td><td style="padding:4px 0;">${escapeHtml(data.color)}</td></tr>
           <tr><td style="padding:4px 0;color:#6b7280;">Quantity</td><td style="padding:4px 0;">${data.quantity}</td></tr>
@@ -205,6 +207,7 @@ export async function sendMerchOrderEmails(orderId: string): Promise<void> {
     eventName: order.event.name,
     name: order.name,
     email: order.email,
+    fit: order.fit,
     size: order.size,
     color: order.color,
     quantity: order.quantity,

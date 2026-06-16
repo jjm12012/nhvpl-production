@@ -90,6 +90,10 @@ model MerchandiseOrder {
   createdAt             DateTime @default(now())
   name                  String
   email                 String
+  // Garment cut requested by the buyer (e.g. "Men's" / "Women's").
+  // Nullable so orders placed before this column existed remain valid;
+  // the public order form requires it for all new orders.
+  fit                   String?
   size                  String
   color                 String
   quantity              Int      @default(1)

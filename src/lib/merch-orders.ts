@@ -24,12 +24,13 @@ export async function recordPaidMerchOrder(
   const eventId = metadata.event_id;
   const name = metadata.name;
   const email = metadata.email;
+  const fit = metadata.fit;
   const size = metadata.size;
   const color = metadata.color;
   const quantity = parseInt(metadata.quantity || '1', 10);
   const unitPrice = parseFloat(metadata.unit_price || '0');
 
-  if (!eventId || !name || !email || !size || !color) {
+  if (!eventId || !name || !email || !fit || !size || !color) {
     console.warn('[merch] checkout session missing order metadata, skipping', session.id);
     return null;
   }
@@ -53,6 +54,7 @@ export async function recordPaidMerchOrder(
         eventId,
         name,
         email,
+        fit,
         size,
         color,
         quantity,

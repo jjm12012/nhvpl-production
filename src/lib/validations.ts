@@ -88,7 +88,11 @@ export type EventInput = z.infer<typeof eventSchema>;
 // ---------------------------------------------------------------------------
 
 // Hardcoded shirt sizes (not admin-configurable).
-export const SHIRT_SIZES = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'] as const;
+export const SHIRT_SIZES = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL'] as const;
+
+// Hardcoded shirt fits / cuts (not admin-configurable). Same color, different
+// garment cut. Required on every new order.
+export const SHIRT_FITS = ["Men's", "Women's"] as const;
 
 // Admin creates/edits a merchandise event with a reduced field set.
 // Colors are entered as a comma-separated string and stored as TEXT[].
@@ -134,6 +138,9 @@ export const merchandiseOrderSchema = z.object({
     .string()
     .email('Invalid email address')
     .toLowerCase(),
+  fit: z.enum(SHIRT_FITS, {
+    errorMap: () => ({ message: 'Please select a fit' }),
+  }),
   size: z.enum(SHIRT_SIZES, {
     errorMap: () => ({ message: 'Please select a shirt size' }),
   }),

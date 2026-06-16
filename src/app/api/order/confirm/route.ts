@@ -39,6 +39,7 @@ export async function GET(request: NextRequest) {
       eventName: event?.name ?? '',
       name: order.name,
       email: order.email,
+      fit: order.fit,
       size: order.size,
       color: order.color,
       quantity: order.quantity,

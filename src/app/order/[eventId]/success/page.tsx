@@ -11,6 +11,7 @@ interface ConfirmedOrder {
   eventName: string;
   name: string;
   email: string;
+  fit: string | null;
   size: string;
   color: string;
   quantity: number;
@@ -90,6 +91,12 @@ export default function OrderSuccessPage() {
               <span className="text-gray-500">Event</span>
               <span className="font-medium text-gray-900">{order.eventName}</span>
             </div>
+            {order.fit && (
+              <div className="flex justify-between px-4 py-3">
+                <span className="text-gray-500">Fit</span>
+                <span className="font-medium text-gray-900">{order.fit}</span>
+              </div>
+            )}
             <div className="flex justify-between px-4 py-3">
               <span className="text-gray-500">Size</span>
               <span className="font-medium text-gray-900">{order.size}</span>
