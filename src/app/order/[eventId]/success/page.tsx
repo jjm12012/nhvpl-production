@@ -68,8 +68,8 @@ export default function OrderSuccessPage() {
         <AlertCircle className="w-10 h-10 text-amber-500 mb-4" />
         <h1 className="text-xl font-semibold text-gray-900 mb-2">We couldn&apos;t confirm your order</h1>
         <p className="text-gray-600 mb-6 text-center max-w-md">
-          If you completed payment, your order was still received and you&apos;ll get a
-          confirmation email shortly. Otherwise, you can try ordering again.
+          If you completed payment, your order was still received &mdash; check your bank or
+          card statement for the charge as proof of purchase. Otherwise, you can try ordering again.
         </p>
         <Link href={`/order/${eventId}`} className="btn btn-primary">Back to order form</Link>
       </div>
@@ -82,8 +82,11 @@ export default function OrderSuccessPage() {
         <div className="card p-8 bg-white text-center">
           <CheckCircle2 className="w-12 h-12 text-accent-600 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Order confirmed!</h1>
-          <p className="text-gray-600 mb-8">
-            Thanks, {order.name.split(' ')[0]}! A confirmation email is on its way to {order.email}.
+          <p className="text-gray-600 mb-4">
+            Thanks, {order.name.split(' ')[0]}! Your order has been received.
+          </p>
+          <p className="text-sm font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mb-8">
+            Please take a screenshot of this page for your records &mdash; it&apos;s your order confirmation.
           </p>
 
           <div className="text-left border border-gray-200 rounded-lg divide-y divide-gray-200 text-sm">
