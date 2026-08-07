@@ -30,7 +30,9 @@ export default function RegistrantsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterEvent, setFilterEvent] = useState('');
   const [filterDivision, setFilterDivision] = useState('');
-  const [filterStatus, setFilterStatus] = useState('');
+  // Default to PAID: only fully registered (paid) players are shown. Incomplete
+  // checkouts (PENDING) never held a spot and are hidden unless explicitly selected.
+  const [filterStatus, setFilterStatus] = useState('PAID');
   const [currentPage, setCurrentPage] = useState(1);
 
   const itemsPerPage = 20;
@@ -242,10 +244,12 @@ export default function RegistrantsPage() {
               }}
               className="input"
             >
-              <option value="">All Status</option>
-              <option value="COMPLETED">Completed</option>
-              <option value="PENDING">Pending</option>
+              <option value="PAID">Paid (registered)</option>
+              <option value="PENDING">Incomplete checkout</option>
               <option value="FAILED">Failed</option>
+              <option value="REFUNDED">Refunded</option>
+              <option value="CANCELLED">Cancelled</option>
+              <option value="">All statuses</option>
             </select>
           </div>
         </div>
@@ -294,9 +298,11 @@ export default function RegistrantsPage() {
                     </td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
-                        reg.paymentStatus === 'COMPLETED'
+                        reg.paymentStatus === 'PAID'
                           ? 'bg-accent-100 text-accent-700'
-                          : 'bg-yellow-100 text-yellow-700'
+                          : reg.paymentStatus === 'PENDING'
+                            ? 'bg-yellow-100 text-yellow-700'
+                            : 'bg-red-100 text-red-700'
                       }`}>
                         {reg.paymentStatus}
                       </span>

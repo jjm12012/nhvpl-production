@@ -137,14 +137,7 @@
       "key": "register_form_division_desc_beginner",
       "page": "register_form",
       "label": "Division description — Beginner",
-      "value": "New to pickleball or playing for less than 1 year",
-      "format": "TEXT"
-    },
-    {
-      "key": "register_form_division_desc_intermediate_a",
-      "page": "register_form",
-      "label": "Division description — Intermediate A",
-      "value": "3.0-3.5: Grasped basic strategies and incorporating spin and power into your game",
+      "value": "Under 2.0: Little or no pickleball experience; looking to learn the rules and how to play",
       "format": "TEXT"
     },
     {
@@ -155,10 +148,24 @@
       "format": "TEXT"
     },
     {
-      "key": "register_form_division_desc_advanced",
+      "key": "register_form_division_desc_intermediate_a",
       "page": "register_form",
-      "label": "Division description — Advanced",
-      "value": "Playing for 3+ years with consistent tournament play",
+      "label": "Division description — Intermediate A",
+      "value": "3.0-3.5: Grasped basic strategies and incorporating spin and power into your game",
+      "format": "TEXT"
+    },
+    {
+      "key": "register_form_division_desc_advanced_b",
+      "page": "register_form",
+      "label": "Division description — Advanced B",
+      "value": "3.5-3.75: Competitive games; among the top players in rec play, mastering the third shot drop and shot selection",
+      "format": "TEXT"
+    },
+    {
+      "key": "register_form_division_desc_advanced_a",
+      "page": "register_form",
+      "label": "Division description — Advanced A",
+      "value": "3.75+: Top-level competitive play; many of these players also compete in tournaments",
       "format": "TEXT"
     },
     {

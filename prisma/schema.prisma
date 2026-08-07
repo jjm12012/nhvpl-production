@@ -15,7 +15,8 @@ enum SkillLevel {
   BEGINNER
   INTERMEDIATE_A
   INTERMEDIATE_B
-  ADVANCED
+  ADVANCED_A
+  ADVANCED_B
 }
 
 enum PaymentStatus {
@@ -58,7 +59,8 @@ model Event {
   maxBeginner       Int?
   maxIntermediateA  Int?
   maxIntermediateB  Int?
-  maxAdvanced       Int?
+  maxAdvancedA      Int?
+  maxAdvancedB      Int?
   location          String?
   dayOfWeek         String?
   isActive          Boolean        @default(true)

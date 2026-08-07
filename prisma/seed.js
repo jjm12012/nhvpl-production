@@ -30,7 +30,7 @@ async function main() {
     create: {
       id: 'spring-2026',
       name: 'Spring League 2026',
-      description: 'Tuesday–Thursday evenings at Wilbur Cross High School. 8 weeks of competitive and recreational play across Beginner, Intermediate A, Intermediate B, and Advanced divisions. In partnership with New Haven Youth & Recreation.',
+      description: 'Tuesday–Thursday evenings at Wilbur Cross High School. 8 weeks of competitive and recreational play across Beginner, Intermediate B, Intermediate A, Advanced B, and Advanced A divisions. In partnership with New Haven Youth & Recreation.',
       season: 'Spring',
       year: 2026,
       startDate: new Date('2026-05-06'),
@@ -42,7 +42,8 @@ async function main() {
       maxBeginner: 30,
       maxIntermediateA: 30,
       maxIntermediateB: 30,
-      maxAdvanced: 30,
+      maxAdvancedA: 30,
+      maxAdvancedB: 30,
       isActive: true,
       location: 'Wilbur Cross High School',
       dayOfWeek: 'Tuesday–Thursday Evenings',
@@ -72,6 +73,17 @@ async function main() {
     });
   }
   console.log(`✓ Content blocks upserted: ${contentBlocks.length}`);
+
+  // Remove orphaned blocks whose keys are no longer in the registry
+  // (e.g. register_form_division_desc_advanced after the Advanced A/B split).
+  // Public pages already ignore unknown keys; this keeps the admin UI clean.
+  const validKeys = contentBlocks.map((b) => b.key);
+  const removed = await prisma.contentBlock.deleteMany({
+    where: { key: { notIn: validKeys } },
+  });
+  if (removed.count > 0) {
+    console.log(`✓ Orphaned content blocks removed: ${removed.count}`);
+  }
 }
 
 main()

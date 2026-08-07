@@ -19,7 +19,8 @@ interface Event {
   maxBeginner?: number | null;
   maxIntermediateA?: number | null;
   maxIntermediateB?: number | null;
-  maxAdvanced?: number | null;
+  maxAdvancedA?: number | null;
+  maxAdvancedB?: number | null;
   isActive: boolean;
   formType?: 'LEAGUE' | 'MERCHANDISE';
   unitPrice?: number | null;
@@ -33,7 +34,7 @@ interface Event {
 }
 
 function totalCapacity(e: Event): number | null {
-  const caps = [e.maxBeginner, e.maxIntermediateA, e.maxIntermediateB, e.maxAdvanced]
+  const caps = [e.maxBeginner, e.maxIntermediateA, e.maxIntermediateB, e.maxAdvancedA, e.maxAdvancedB]
     .filter((c): c is number => typeof c === 'number');
   if (caps.length === 0) return null;
   return caps.reduce((sum, c) => sum + c, 0);

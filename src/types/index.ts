@@ -25,7 +25,8 @@ export interface EventListItem {
   maxBeginner: number | null;
   maxIntermediateA: number | null;
   maxIntermediateB: number | null;
-  maxAdvanced: number | null;
+  maxAdvancedA: number | null;
+  maxAdvancedB: number | null;
   location: string | null;
   isActive: boolean;
   registrationCount?: number;

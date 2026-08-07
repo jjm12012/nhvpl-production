@@ -23,7 +23,7 @@ export const registrationSchema = z.object({
   phone: z
     .string()
     .regex(/^\(\d{3}\) \d{3}-\d{4}$/, 'Phone must be in format (XXX) XXX-XXXX'),
-  division: z.enum(['BEGINNER', 'INTERMEDIATE_A', 'INTERMEDIATE_B', 'ADVANCED']),
+  division: z.enum(['BEGINNER', 'INTERMEDIATE_A', 'INTERMEDIATE_B', 'ADVANCED_A', 'ADVANCED_B']),
   canCommit: z.literal(true, {
     errorMap: () => ({ message: 'You must confirm you can commit to the season' }),
   }),
@@ -66,7 +66,8 @@ export const eventSchema = z.object({
   maxBeginner: z.coerce.number().int().nonnegative().optional(),
   maxIntermediateA: z.coerce.number().int().nonnegative().optional(),
   maxIntermediateB: z.coerce.number().int().nonnegative().optional(),
-  maxAdvanced: z.coerce.number().int().nonnegative().optional(),
+  maxAdvancedA: z.coerce.number().int().nonnegative().optional(),
+  maxAdvancedB: z.coerce.number().int().nonnegative().optional(),
   location: z.string().optional(),
   dayOfWeek: z.string().optional(),
   isActive: z.boolean().default(true),

@@ -60,7 +60,8 @@ export function divisionLabel(level: SkillLevel): string {
     BEGINNER: 'Beginner',
     INTERMEDIATE_A: 'Intermediate A',
     INTERMEDIATE_B: 'Intermediate B',
-    ADVANCED: 'Advanced',
+    ADVANCED_A: 'Advanced A',
+    ADVANCED_B: 'Advanced B',
   };
 
   return labels[level];
@@ -68,24 +69,31 @@ export function divisionLabel(level: SkillLevel): string {
 
 export function divisionDescription(level: SkillLevel): string {
   const descriptions: Record<SkillLevel, string> = {
-    BEGINNER: 'New to pickleball or playing for less than 1 year',
-    INTERMEDIATE_A: '3.0-3.5: Grasped basic strategies and incorporating spin and power into your game',
+    BEGINNER: 'Under 2.0: Little or no pickleball experience; looking to learn the rules and how to play',
     INTERMEDIATE_B: '2.0-3.0: Understand the rules and looking to improve with consistency and basic strategy',
-    ADVANCED: 'Playing for 3+ years with consistent tournament play',
+    INTERMEDIATE_A: '3.0-3.5: Grasped basic strategies and incorporating spin and power into your game',
+    ADVANCED_B: '3.5-3.75: Competitive games; among the top players in rec play, mastering the third shot drop and shot selection',
+    ADVANCED_A: '3.75+: Top-level competitive play; many of these players also compete in tournaments',
   };
 
   return descriptions[level];
 }
 
 // Capacity key used to look up the cap on Event for a given division.
-export function divisionCapacityKey(
-  level: SkillLevel
-): 'maxBeginner' | 'maxIntermediateA' | 'maxIntermediateB' | 'maxAdvanced' {
-  const map: Record<SkillLevel, 'maxBeginner' | 'maxIntermediateA' | 'maxIntermediateB' | 'maxAdvanced'> = {
+export type DivisionCapacityKey =
+  | 'maxBeginner'
+  | 'maxIntermediateA'
+  | 'maxIntermediateB'
+  | 'maxAdvancedA'
+  | 'maxAdvancedB';
+
+export function divisionCapacityKey(level: SkillLevel): DivisionCapacityKey {
+  const map: Record<SkillLevel, DivisionCapacityKey> = {
     BEGINNER: 'maxBeginner',
     INTERMEDIATE_A: 'maxIntermediateA',
     INTERMEDIATE_B: 'maxIntermediateB',
-    ADVANCED: 'maxAdvanced',
+    ADVANCED_A: 'maxAdvancedA',
+    ADVANCED_B: 'maxAdvancedB',
   };
   return map[level];
 }
@@ -112,7 +120,8 @@ export function totalMaxCapacity(event: Event): number | null {
     event.maxBeginner,
     event.maxIntermediateA,
     event.maxIntermediateB,
-    event.maxAdvanced,
+    event.maxAdvancedA,
+    event.maxAdvancedB,
   ].filter((c): c is number => typeof c === 'number');
 
   if (caps.length === 0) return null;

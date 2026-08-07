@@ -12,11 +12,13 @@ import { formatPhone, divisionDescription } from '@/lib/utils';
 import { useContent } from '@/lib/useContent';
 import Content from '@/components/Content';
 
+// Ordered lowest → highest skill level.
 const DIVISIONS = [
   { id: 'BEGINNER', label: 'Beginner', capKey: 'maxBeginner', descKey: 'register_form_division_desc_beginner' },
-  { id: 'INTERMEDIATE_A', label: 'Intermediate A', capKey: 'maxIntermediateA', descKey: 'register_form_division_desc_intermediate_a' },
   { id: 'INTERMEDIATE_B', label: 'Intermediate B', capKey: 'maxIntermediateB', descKey: 'register_form_division_desc_intermediate_b' },
-  { id: 'ADVANCED', label: 'Advanced', capKey: 'maxAdvanced', descKey: 'register_form_division_desc_advanced' },
+  { id: 'INTERMEDIATE_A', label: 'Intermediate A', capKey: 'maxIntermediateA', descKey: 'register_form_division_desc_intermediate_a' },
+  { id: 'ADVANCED_B', label: 'Advanced B', capKey: 'maxAdvancedB', descKey: 'register_form_division_desc_advanced_b' },
+  { id: 'ADVANCED_A', label: 'Advanced A', capKey: 'maxAdvancedA', descKey: 'register_form_division_desc_advanced_a' },
 ] as const;
 
 interface ActiveEvent {
@@ -24,7 +26,8 @@ interface ActiveEvent {
   maxBeginner: number | null;
   maxIntermediateA: number | null;
   maxIntermediateB: number | null;
-  maxAdvanced: number | null;
+  maxAdvancedA: number | null;
+  maxAdvancedB: number | null;
   paidCountsByDivision?: Record<string, number>;
 }
 

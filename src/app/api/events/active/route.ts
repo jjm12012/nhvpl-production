@@ -44,7 +44,8 @@ export async function GET() {
         BEGINNER: 0,
         INTERMEDIATE_A: 0,
         INTERMEDIATE_B: 0,
-        ADVANCED: 0,
+        ADVANCED_A: 0,
+        ADVANCED_B: 0,
       };
       for (const r of event.registrations) {
         countsByDivision[r.division] = (countsByDivision[r.division] || 0) + 1;
@@ -65,7 +66,8 @@ export async function GET() {
         maxBeginner: event.maxBeginner,
         maxIntermediateA: event.maxIntermediateA,
         maxIntermediateB: event.maxIntermediateB,
-        maxAdvanced: event.maxAdvanced,
+        maxAdvancedA: event.maxAdvancedA,
+        maxAdvancedB: event.maxAdvancedB,
         location: event.location,
         dayOfWeek: event.dayOfWeek,
         isActive: event.isActive,

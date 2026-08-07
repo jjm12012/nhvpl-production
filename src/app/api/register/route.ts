@@ -95,6 +95,19 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Lazy cleanup: purge abandoned incomplete checkouts. PENDING rows are
+    // internal plumbing between form submit and payment; they never hold a
+    // spot and are never shown as registered. Stripe Checkout sessions expire
+    // within 24h, so anything older can no longer complete payment.
+    const purgeCutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    try {
+      await prisma.registration.deleteMany({
+        where: { paymentStatus: 'PENDING', createdAt: { lt: purgeCutoff } },
+      });
+    } catch (err) {
+      console.error('Pending purge failed (non-fatal):', err);
+    }
+
     // Get client IP
     const ipAddress =
       request.headers.get('x-forwarded-for') ||

@@ -19,7 +19,8 @@ interface Event {
   maxBeginner?: number | null;
   maxIntermediateA?: number | null;
   maxIntermediateB?: number | null;
-  maxAdvanced?: number | null;
+  maxAdvancedA?: number | null;
+  maxAdvancedB?: number | null;
   isActive: boolean;
   formType?: 'LEAGUE' | 'MERCHANDISE';
   unitPrice?: number | null;
@@ -68,7 +69,8 @@ export default function EventModal({ event, onClose, onSave }: EventModalProps) 
     maxBeginner: '',
     maxIntermediateA: '',
     maxIntermediateB: '',
-    maxAdvanced: '',
+    maxAdvancedA: '',
+    maxAdvancedB: '',
     isActive: true,
   });
 
@@ -98,7 +100,8 @@ export default function EventModal({ event, onClose, onSave }: EventModalProps) 
         maxBeginner: event.maxBeginner != null ? event.maxBeginner.toString() : '',
         maxIntermediateA: event.maxIntermediateA != null ? event.maxIntermediateA.toString() : '',
         maxIntermediateB: event.maxIntermediateB != null ? event.maxIntermediateB.toString() : '',
-        maxAdvanced: event.maxAdvanced != null ? event.maxAdvanced.toString() : '',
+        maxAdvancedA: event.maxAdvancedA != null ? event.maxAdvancedA.toString() : '',
+        maxAdvancedB: event.maxAdvancedB != null ? event.maxAdvancedB.toString() : '',
         isActive: event.isActive,
       });
       setFormType(event.formType || 'LEAGUE');
@@ -137,7 +140,8 @@ export default function EventModal({ event, onClose, onSave }: EventModalProps) 
         maxBeginner: formData.maxBeginner ? parseInt(formData.maxBeginner) : undefined,
         maxIntermediateA: formData.maxIntermediateA ? parseInt(formData.maxIntermediateA) : undefined,
         maxIntermediateB: formData.maxIntermediateB ? parseInt(formData.maxIntermediateB) : undefined,
-        maxAdvanced: formData.maxAdvanced ? parseInt(formData.maxAdvanced) : undefined,
+        maxAdvancedA: formData.maxAdvancedA ? parseInt(formData.maxAdvancedA) : undefined,
+        maxAdvancedB: formData.maxAdvancedB ? parseInt(formData.maxAdvancedB) : undefined,
       };
       await onSave(submitData);
     } catch (error) {
@@ -373,14 +377,6 @@ export default function EventModal({ event, onClose, onSave }: EventModalProps) 
                 />
               </div>
               <div>
-                <label htmlFor="maxIntermediateA" className="text-xs font-medium text-gray-700 mb-1 block">Intermediate A</label>
-                <input
-                  id="maxIntermediateA" name="maxIntermediateA" type="number" min="0"
-                  value={formData.maxIntermediateA} onChange={handleChange}
-                  placeholder="Unlimited" className="input"
-                />
-              </div>
-              <div>
                 <label htmlFor="maxIntermediateB" className="text-xs font-medium text-gray-700 mb-1 block">Intermediate B</label>
                 <input
                   id="maxIntermediateB" name="maxIntermediateB" type="number" min="0"
@@ -389,10 +385,26 @@ export default function EventModal({ event, onClose, onSave }: EventModalProps) 
                 />
               </div>
               <div>
-                <label htmlFor="maxAdvanced" className="text-xs font-medium text-gray-700 mb-1 block">Advanced</label>
+                <label htmlFor="maxIntermediateA" className="text-xs font-medium text-gray-700 mb-1 block">Intermediate A</label>
                 <input
-                  id="maxAdvanced" name="maxAdvanced" type="number" min="0"
-                  value={formData.maxAdvanced} onChange={handleChange}
+                  id="maxIntermediateA" name="maxIntermediateA" type="number" min="0"
+                  value={formData.maxIntermediateA} onChange={handleChange}
+                  placeholder="Unlimited" className="input"
+                />
+              </div>
+              <div>
+                <label htmlFor="maxAdvancedB" className="text-xs font-medium text-gray-700 mb-1 block">Advanced B</label>
+                <input
+                  id="maxAdvancedB" name="maxAdvancedB" type="number" min="0"
+                  value={formData.maxAdvancedB} onChange={handleChange}
+                  placeholder="Unlimited" className="input"
+                />
+              </div>
+              <div>
+                <label htmlFor="maxAdvancedA" className="text-xs font-medium text-gray-700 mb-1 block">Advanced A</label>
+                <input
+                  id="maxAdvancedA" name="maxAdvancedA" type="number" min="0"
+                  value={formData.maxAdvancedA} onChange={handleChange}
                   placeholder="Unlimited" className="input"
                 />
               </div>

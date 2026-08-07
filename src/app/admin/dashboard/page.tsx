@@ -64,7 +64,8 @@ async function getDashboardStats() {
           activeEvent.maxBeginner,
           activeEvent.maxIntermediateA,
           activeEvent.maxIntermediateB,
-          activeEvent.maxAdvanced,
+          activeEvent.maxAdvancedA,
+          activeEvent.maxAdvancedB,
         ]
           .filter((c): c is number => typeof c === 'number')
           .reduce((sum, c) => sum + c, 0)
@@ -75,7 +76,8 @@ async function getDashboardStats() {
           activeEvent.maxBeginner,
           activeEvent.maxIntermediateA,
           activeEvent.maxIntermediateB,
-          activeEvent.maxAdvanced,
+          activeEvent.maxAdvancedA,
+          activeEvent.maxAdvancedB,
         ].some((c) => typeof c === 'number')
       : false;
 
@@ -85,9 +87,10 @@ async function getDashboardStats() {
 
     const divisionData = [
       { name: 'Beginner', count: divisionBreakdown.find((d) => d.division === 'BEGINNER')?._count || 0 },
-      { name: 'Intermediate A', count: divisionBreakdown.find((d) => d.division === 'INTERMEDIATE_A')?._count || 0 },
       { name: 'Intermediate B', count: divisionBreakdown.find((d) => d.division === 'INTERMEDIATE_B')?._count || 0 },
-      { name: 'Advanced', count: divisionBreakdown.find((d) => d.division === 'ADVANCED')?._count || 0 },
+      { name: 'Intermediate A', count: divisionBreakdown.find((d) => d.division === 'INTERMEDIATE_A')?._count || 0 },
+      { name: 'Advanced B', count: divisionBreakdown.find((d) => d.division === 'ADVANCED_B')?._count || 0 },
+      { name: 'Advanced A', count: divisionBreakdown.find((d) => d.division === 'ADVANCED_A')?._count || 0 },
     ];
 
     return {
