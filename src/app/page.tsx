@@ -36,6 +36,11 @@ async function getActiveEvents() {
         name: true,
         season: true,
         year: true,
+        startDate: true,
+        endDate: true,
+        price: true,
+        location: true,
+        dayOfWeek: true,
       },
       take: 1,
     });
@@ -82,6 +87,11 @@ export default async function HomePage() {
     getOpenMerchEvents(),
   ]);
   const hasActiveEvent = activeEvents.length > 0;
+  const activeEvent = activeEvents[0] ?? null;
+
+  // Compact date range for the hero card, e.g. "Sep 8 – Nov 12".
+  const shortDate = (d: Date) =>
+    new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }).format(d);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -119,10 +129,12 @@ export default async function HomePage() {
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            {hasActiveEvent && (
+            {activeEvent && (
               <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full mb-6 border border-white/30">
                 <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
-                <span className="text-sm font-medium text-white">Spring 2026 Registration Now Open</span>
+                <span className="text-sm font-medium text-white">
+                  {activeEvent.season} {activeEvent.year} Registration Now Open
+                </span>
               </div>
             )}
             <h1 className="text-5xl sm:text-6xl font-bold text-white mb-4">
@@ -132,26 +144,30 @@ export default async function HomePage() {
               Join us for an exciting 10-week competitive season. Build your skills, make new
               friends, and compete in a supportive community.
             </p>
-            <div className="bg-white/95 backdrop-blur-sm rounded-lg p-8 mb-8 inline-block">
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 text-left">
-                <div>
-                  <p className="text-sm text-gray-600 font-medium">Location</p>
-                  <p className="text-lg font-bold text-gray-900">Wilbur Cross HS</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600 font-medium">Day & Time</p>
-                  <p className="text-lg font-bold text-gray-900">Tue–Thu Evenings</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600 font-medium">Dates</p>
-                  <p className="text-lg font-bold text-gray-900">May 6 – Jun 24</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600 font-medium">Cost</p>
-                  <p className="text-lg font-bold text-primary-600">$30</p>
+            {activeEvent && (
+              <div className="bg-white/95 backdrop-blur-sm rounded-lg p-8 mb-8 inline-block">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 text-left">
+                  <div>
+                    <p className="text-sm text-gray-600 font-medium">Location</p>
+                    <p className="text-lg font-bold text-gray-900">{activeEvent.location || 'Wilbur Cross HS'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 font-medium">Day & Time</p>
+                    <p className="text-lg font-bold text-gray-900">{activeEvent.dayOfWeek || 'Tue–Thu Evenings'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 font-medium">Dates</p>
+                    <p className="text-lg font-bold text-gray-900">
+                      {shortDate(activeEvent.startDate)} – {shortDate(activeEvent.endDate)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 font-medium">Cost</p>
+                    <p className="text-lg font-bold text-primary-600">${Number(activeEvent.price)}</p>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
             <div className="flex flex-wrap items-center justify-center gap-4 mb-6">
               {hasActiveEvent ? (
                 <Link href="/register" className="btn-primary gap-2 inline-flex">
