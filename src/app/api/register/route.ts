@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
       if (paidCount >= divisionCap) {
         return NextResponse.json(
           {
-            error: `The ${divisionLabel(validatedData.division)} division is full`,
+            error: `The ${divisionLabel(validatedData.division)} division is at capacity. Please email nhvpickleball@gmail.com to be added to the waitlist.`,
             division: validatedData.division,
           },
           { status: 409 }

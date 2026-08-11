@@ -100,7 +100,7 @@ export default function RegistrationFormPage() {
 
       if (!response.ok) {
         const error = await response.json();
-        toast.error(error.message || 'Registration failed. Please try again.');
+        toast.error(error.error || error.message || 'Registration failed. Please try again.');
         return;
       }
 
