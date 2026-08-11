@@ -284,6 +284,18 @@ export default function RegistrationFormPage() {
                         <p className="text-sm text-gray-600">
                           {(c[division.descKey]?.value) ?? divisionDescription(division.id as any)}
                         </p>
+                        {full && (
+                          <p className="text-sm text-red-700 mt-1">
+                            This division is at capacity. Please email{' '}
+                            <a
+                              href="mailto:nhvpickleball@gmail.com"
+                              className="underline font-medium pointer-events-auto"
+                            >
+                              nhvpickleball@gmail.com
+                            </a>{' '}
+                            to be added to the waitlist.
+                          </p>
+                        )}
                       </div>
                     </label>
                   );
