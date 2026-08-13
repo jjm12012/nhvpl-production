@@ -16,6 +16,7 @@ function PaymentPageContent() {
   const eventId = params.eventId as string;
   const registrationId = searchParams.get('registrationId') as string;
   const cancelled = searchParams.get('cancelled');
+  const errorParam = searchParams.get('error');
   const c = useContent('register_payment');
 
   const [isLoading, setIsLoading] = useState(false);
@@ -105,6 +106,30 @@ function PaymentPageContent() {
         {cancelled && (
           <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
             <p className="text-sm text-yellow-800">Payment was cancelled. You can try again whenever you're ready.</p>
+          </div>
+        )}
+
+        {/* Division filled while checkout was open — payment was refunded */}
+        {errorParam === 'division_full' && (
+          <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+            <p className="text-sm text-red-800">
+              Unfortunately, your division filled up while you were completing payment. Your card
+              has been refunded in full — refunds typically appear within 5–10 business days.
+              Please email{' '}
+              <a href="mailto:nhvpickleball@gmail.com" className="underline font-medium">
+                nhvpickleball@gmail.com
+              </a>{' '}
+              to be added to the waitlist.
+            </p>
+          </div>
+        )}
+
+        {/* Payment did not complete */}
+        {errorParam === 'payment_incomplete' && (
+          <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <p className="text-sm text-yellow-800">
+              Your payment didn&apos;t go through. Please try again.
+            </p>
           </div>
         )}
 

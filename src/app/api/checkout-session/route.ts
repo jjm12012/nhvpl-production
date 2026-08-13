@@ -50,6 +50,10 @@ export async function POST(request: NextRequest) {
       },
       success_url: `${appUrl}/api/stripe/callback?session_id={CHECKOUT_SESSION_ID}&registrationId=${registration.id}`,
       cancel_url: `${appUrl}/register/${registration.eventId}/payment?registrationId=${registration.id}&cancelled=true`,
+      // Expire abandoned checkouts quickly (Stripe minimum is 30 min; default
+      // is 24h). Limits how long a stale checkout can outlive the capacity
+      // check that ran at form submission. +60s buffer for clock skew.
+      expires_at: Math.floor(Date.now() / 1000) + 30 * 60 + 60,
     });
 
     return NextResponse.json({ url: session.url });

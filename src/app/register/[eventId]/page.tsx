@@ -41,10 +41,11 @@ export default function RegistrationFormPage() {
 
   useEffect(() => {
     // Fetch capacity/paid counts so we can show "Full" and disable full divisions.
+    // Re-fetched on window focus so a long-lived tab doesn't show stale counts.
     let cancelled = false;
-    (async () => {
+    const loadCounts = async () => {
       try {
-        const res = await fetch('/api/events/active');
+        const res = await fetch('/api/events/active', { cache: 'no-store' });
         if (!res.ok) return;
         const events = (await res.json()) as ActiveEvent[];
         if (cancelled) return;
@@ -53,9 +54,12 @@ export default function RegistrationFormPage() {
       } catch {
         // Non-fatal: form will still submit and be validated server-side.
       }
-    })();
+    };
+    loadCounts();
+    window.addEventListener('focus', loadCounts);
     return () => {
       cancelled = true;
+      window.removeEventListener('focus', loadCounts);
     };
   }, [eventId]);
 

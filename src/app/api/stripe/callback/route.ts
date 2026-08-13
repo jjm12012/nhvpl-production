@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
 import { stripe } from '@/lib/stripe';
 import { sendConfirmationEmailForRegistration } from '@/lib/email';
+import {
+  markRegistrationPaidIfRoom,
+  refundOverCapacityStripePayment,
+} from '@/lib/registration-capacity';
 
 // Called by Stripe after successful payment — verifies session, marks paid, redirects to confirmation
 export async function GET(request: NextRequest) {
@@ -26,26 +29,35 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Mark registration as paid (idempotent — safe to run even if webhook already did it)
-    const existing = await prisma.registration.findUnique({
-      where: { id: registrationId },
-      select: { paymentStatus: true },
+    // Mark paid only if the division still has room (idempotent — safe to run
+    // even if the webhook already did it). The form-submission capacity check
+    // can be hours stale by the time checkout completes.
+    const outcome = await markRegistrationPaidIfRoom({
+      registrationId,
+      paymentMethod: 'STRIPE_CARD',
+      amountPaid: session.amount_total ? session.amount_total / 100 : 30,
+      stripeSessionId: session.id,
+      stripePaymentIntentId:
+        typeof session.payment_intent === 'string' ? session.payment_intent : undefined,
     });
 
-    await prisma.registration.update({
-      where: { id: registrationId },
-      data: {
-        paymentStatus: 'PAID',
-        paymentMethod: 'STRIPE_CARD',
-        amountPaid: session.amount_total ? session.amount_total / 100 : 30,
-        paidAt: new Date(),
+    if (outcome === 'division_full') {
+      // Division filled while they were on the Stripe checkout page: refund
+      // and send them back with an explanation instead of a confirmation.
+      await refundOverCapacityStripePayment({
+        registrationId,
+        paymentIntentId:
+          typeof session.payment_intent === 'string' ? session.payment_intent : null,
         stripeSessionId: session.id,
-      },
-    });
+      });
+      return NextResponse.redirect(
+        `${appUrl}/register/${session.metadata?.eventId}/payment?registrationId=${registrationId}&error=division_full`
+      );
+    }
 
     // Fire confirmation email exactly once (only when we were the one who
     // flipped the status to PAID — the webhook handler guards against dupes too).
-    if (existing && existing.paymentStatus !== 'PAID') {
+    if (outcome === 'paid') {
       await sendConfirmationEmailForRegistration(registrationId);
     }
 

@@ -2,6 +2,11 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import type { SkillLevel } from '@prisma/client';
 
+// Division paid-counts must always be live. Without this, Next 14 statically
+// caches this GET handler at build time (it reads nothing from the request),
+// so "Full" badges freeze at whatever the counts were at the last deploy.
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const now = new Date();

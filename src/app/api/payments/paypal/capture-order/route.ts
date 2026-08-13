@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { sendConfirmationEmailForRegistration } from '@/lib/email';
+import { markRegistrationPaidIfRoom } from '@/lib/registration-capacity';
 
 /**
  * PayPal Capture Order API
@@ -46,22 +47,31 @@ export async function POST(request: NextRequest) {
     // 1. Call PayPal API to capture the order
     // 2. Verify the capture was successful
     // 3. Extract amount and update registration
+    //
+    // NOTE: capture the PayPal order only AFTER markRegistrationPaidIfRoom
+    // returns 'paid' — that way a division-full result means nothing was
+    // charged and no refund is needed.
 
-    // Mark registration as PAID
-    const now = new Date();
-    const wasAlreadyPaid = registration.paymentStatus === 'PAID';
-
-    await prisma.registration.update({
-      where: { id: registrationId },
-      data: {
-        paymentStatus: 'PAID',
-        paymentMethod: 'PAYPAL',
-        amountPaid: registration.event.price,
-        paidAt: now,
-      },
+    // Mark registration as PAID only if the division still has room. The
+    // capacity check at form submission can be stale by the time payment
+    // completes.
+    const outcome = await markRegistrationPaidIfRoom({
+      registrationId,
+      paymentMethod: 'PAYPAL',
+      amountPaid: Number(registration.event.price),
     });
 
-    if (!wasAlreadyPaid) {
+    if (outcome === 'division_full') {
+      return NextResponse.json(
+        {
+          error:
+            'This division filled up while you were completing payment. You have not been charged. Please email nhvpickleball@gmail.com to be added to the waitlist.',
+        },
+        { status: 409 }
+      );
+    }
+
+    if (outcome === 'paid') {
       await sendConfirmationEmailForRegistration(registrationId);
     }
 

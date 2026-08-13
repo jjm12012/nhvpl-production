@@ -60,6 +60,9 @@ export async function POST(request: NextRequest) {
         eventId: registration.eventId,
       },
       customer_email: registration.email,
+      // Expire abandoned checkouts quickly (Stripe minimum is 30 min; default
+      // is 24h). +60s buffer for clock skew.
+      expires_at: Math.floor(Date.now() / 1000) + 30 * 60 + 60,
     });
 
     // Update registration with stripeSessionId

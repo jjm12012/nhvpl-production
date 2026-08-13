@@ -3,6 +3,10 @@ import { prisma } from '@/lib/prisma';
 import { stripe } from '@/lib/stripe';
 import { sendConfirmationEmailForRegistration } from '@/lib/email';
 import { isMerchCheckoutSession, recordPaidMerchOrder } from '@/lib/merch-orders';
+import {
+  markRegistrationPaidIfRoom,
+  refundOverCapacityStripePayment,
+} from '@/lib/registration-capacity';
 
 export async function POST(request: NextRequest) {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -49,29 +53,30 @@ export async function POST(request: NextRequest) {
       }
 
       if (session.payment_status === 'paid') {
-        // Only send the confirmation email when we actually transition into PAID.
-        // If the record was already PAID (e.g. stripe callback beat the webhook),
-        // we avoid double-emailing the user.
-        const existing = await prisma.registration.findUnique({
-          where: { id: registrationId },
-          select: { paymentStatus: true },
+        // Re-check capacity at payment time: the form-submission check can be
+        // hours stale by the time checkout completes. Marks PAID atomically
+        // only if the division still has room.
+        const outcome = await markRegistrationPaidIfRoom({
+          registrationId,
+          paymentMethod: 'STRIPE_CARD',
+          amountPaid: session.amount_total ? session.amount_total / 100 : 30,
+          stripeSessionId: session.id,
+          stripePaymentIntentId: session.payment_intent as string,
         });
 
-        await prisma.registration.update({
-          where: { id: registrationId },
-          data: {
-            paymentStatus: 'PAID',
-            paymentMethod: 'STRIPE_CARD',
-            amountPaid: session.amount_total ? session.amount_total / 100 : 30,
-            paidAt: new Date(),
-            stripeSessionId: session.id,
-            stripePaymentIntentId: session.payment_intent as string,
-          },
-        });
-        console.log(`Registration ${registrationId} marked as PAID via webhook`);
-
-        if (existing && existing.paymentStatus !== 'PAID') {
+        if (outcome === 'paid') {
+          console.log(`Registration ${registrationId} marked as PAID via webhook`);
+          // Only send the confirmation email when we actually transition into
+          // PAID (if the stripe callback beat the webhook, it already sent it).
           await sendConfirmationEmailForRegistration(registrationId);
+        } else if (outcome === 'division_full') {
+          await refundOverCapacityStripePayment({
+            registrationId,
+            paymentIntentId: session.payment_intent as string,
+            stripeSessionId: session.id,
+          });
+        } else if (outcome === 'not_found') {
+          console.warn(`checkout.session.completed for unknown registration ${registrationId}`);
         }
       }
     }
