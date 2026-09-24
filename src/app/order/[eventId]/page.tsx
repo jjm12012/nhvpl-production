@@ -7,18 +7,28 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
 import { Loader2, ShoppingBag, AlertCircle } from 'lucide-react';
-import { merchandiseOrderSchema, SHIRT_SIZES, SHIRT_FITS, type MerchandiseOrderInput } from '@/lib/validations';
+import { merchandiseOrderSchema, type MerchandiseOrderInput } from '@/lib/validations';
 import { formatCurrency } from '@/lib/utils';
+
+interface MerchProduct {
+  id: string;
+  name: string;
+  description: string | null;
+  unitPrice: number;
+  availableColors: string[];
+  sizes: string[];
+  fits: string[];
+  sortOrder: number;
+}
 
 interface MerchEvent {
   id: string;
   name: string;
   description: string | null;
-  unitPrice: number | null;
-  availableColors: string[];
   orderOpenDate: string | null;
   orderCloseDate: string | null;
   isOpen: boolean;
+  products: MerchProduct[];
 }
 
 export default function OrderFormPage() {
@@ -27,6 +37,19 @@ export default function OrderFormPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [event, setEvent] = useState<MerchEvent | null>(null);
   const [fetchState, setFetchState] = useState<'loading' | 'ready' | 'not_found'>('loading');
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    resetField,
+    setError,
+    formState: { errors },
+  } = useForm<MerchandiseOrderInput>({
+    resolver: zodResolver(merchandiseOrderSchema),
+    defaultValues: { eventId, quantity: 1, productId: '' },
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -38,7 +61,12 @@ export default function OrderFormPage() {
           setFetchState('not_found');
           return;
         }
-        setEvent(await res.json());
+        const data: MerchEvent = await res.json();
+        setEvent(data);
+        // A single-product event is preselected so the buyer only fills options.
+        if (data.products.length === 1) {
+          setValue('productId', data.products[0].id);
+        }
         setFetchState('ready');
       } catch {
         if (!cancelled) setFetchState('not_found');
@@ -47,29 +75,35 @@ export default function OrderFormPage() {
     return () => {
       cancelled = true;
     };
-  }, [eventId]);
+  }, [eventId, setValue]);
 
-  const {
-    register,
-    handleSubmit,
-    watch,
-    formState: { errors },
-  } = useForm<MerchandiseOrderInput>({
-    resolver: zodResolver(merchandiseOrderSchema),
-    defaultValues: { eventId, quantity: 1 },
-  });
-
+  const productId = watch('productId');
   const quantity = watch('quantity');
-  const total =
-    event?.unitPrice && quantity ? event.unitPrice * Number(quantity) : null;
+  const product = event?.products.find((p) => p.id === productId) ?? null;
+  const asksForFit = !!product && product.fits.length > 0;
+  const total = product && quantity ? product.unitPrice * Number(quantity) : null;
+
+  // Switching product invalidates the option choices.
+  const selectProduct = (id: string) => {
+    setValue('productId', id, { shouldValidate: true });
+    resetField('fit', { defaultValue: '' });
+    resetField('size', { defaultValue: '' });
+    resetField('color', { defaultValue: '' });
+  };
 
   const onSubmit = async (data: MerchandiseOrderInput) => {
+    if (asksForFit && !data.fit) {
+      setError('fit', { type: 'manual', message: 'Please select a fit' });
+      return;
+    }
     setIsLoading(true);
     try {
+      // Don't send a fit for products that don't ask for one.
+      const payload = asksForFit ? data : { ...data, fit: undefined };
       const response = await fetch('/api/order/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
@@ -108,7 +142,7 @@ export default function OrderFormPage() {
     );
   }
 
-  if (!event.isOpen) {
+  if (!event.isOpen || event.products.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 px-4">
         <ShoppingBag className="w-10 h-10 text-gray-400 mb-4" />
@@ -128,14 +162,46 @@ export default function OrderFormPage() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">{event.name}</h1>
           {event.description && <p className="text-gray-600">{event.description}</p>}
-          {event.unitPrice != null && (
-            <p className="mt-2 text-lg font-semibold text-gray-900">
-              {formatCurrency(event.unitPrice)} per shirt
-            </p>
-          )}
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="card p-6 space-y-6 bg-white">
+          {/* Product picker */}
+          <div>
+            <label className="label">Item *</label>
+            <input type="hidden" {...register('productId')} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {event.products.map((p) => {
+                const selected = p.id === productId;
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => selectProduct(p.id)}
+                    aria-pressed={selected}
+                    className={`text-left rounded-lg border p-4 transition ${
+                      selected
+                        ? 'border-primary-600 ring-2 ring-primary-200 bg-primary-50'
+                        : 'border-gray-200 hover:border-gray-300 bg-white'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <span className="font-semibold text-gray-900">{p.name}</span>
+                      <span className="font-bold text-primary-600 whitespace-nowrap">
+                        {formatCurrency(p.unitPrice)}
+                      </span>
+                    </div>
+                    {p.description && (
+                      <p className="text-sm text-gray-600 mt-1">{p.description}</p>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+            {errors.productId && (
+              <p className="text-sm text-red-600 mt-1">{errors.productId.message}</p>
+            )}
+          </div>
+
           {/* Full Name */}
           <div>
             <label htmlFor="name" className="label">Full Name *</label>
@@ -150,35 +216,37 @@ export default function OrderFormPage() {
             {errors.email && <p className="text-sm text-red-600 mt-1">{errors.email.message}</p>}
           </div>
 
-          {/* Fit */}
-          <div>
-            <label htmlFor="fit" className="label">Fit *</label>
-            <select id="fit" className="input" defaultValue="" {...register('fit')}>
-              <option value="" disabled>Select a fit</option>
-              {SHIRT_FITS.map((fit) => (
-                <option key={fit} value={fit}>{fit}</option>
-              ))}
-            </select>
-            {errors.fit && <p className="text-sm text-red-600 mt-1">{errors.fit.message}</p>}
-          </div>
+          {/* Fit — only for products that offer cuts */}
+          {asksForFit && (
+            <div>
+              <label htmlFor="fit" className="label">Fit *</label>
+              <select id="fit" className="input" defaultValue="" {...register('fit')}>
+                <option value="" disabled>Select a fit</option>
+                {product!.fits.map((fit) => (
+                  <option key={fit} value={fit}>{fit}</option>
+                ))}
+              </select>
+              {errors.fit && <p className="text-sm text-red-600 mt-1">{errors.fit.message}</p>}
+            </div>
+          )}
 
           {/* Size & Color */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
-              <label htmlFor="size" className="label">Shirt Size *</label>
-              <select id="size" className="input" defaultValue="" {...register('size')}>
-                <option value="" disabled>Select a size</option>
-                {SHIRT_SIZES.map((size) => (
+              <label htmlFor="size" className="label">Size *</label>
+              <select id="size" className="input" defaultValue="" disabled={!product} {...register('size')}>
+                <option value="" disabled>{product ? 'Select a size' : 'Choose an item first'}</option>
+                {(product?.sizes ?? []).map((size) => (
                   <option key={size} value={size}>{size}</option>
                 ))}
               </select>
               {errors.size && <p className="text-sm text-red-600 mt-1">{errors.size.message}</p>}
             </div>
             <div>
-              <label htmlFor="color" className="label">Shirt Color *</label>
-              <select id="color" className="input" defaultValue="" {...register('color')}>
-                <option value="" disabled>Select a color</option>
-                {event.availableColors.map((color) => (
+              <label htmlFor="color" className="label">Color *</label>
+              <select id="color" className="input" defaultValue="" disabled={!product} {...register('color')}>
+                <option value="" disabled>{product ? 'Select a color' : 'Choose an item first'}</option>
+                {(product?.availableColors ?? []).map((color) => (
                   <option key={color} value={color}>{color}</option>
                 ))}
               </select>
@@ -199,7 +267,9 @@ export default function OrderFormPage() {
           {/* Total */}
           {total != null && !Number.isNaN(total) && (
             <div className="flex items-center justify-between border-t border-gray-200 pt-4">
-              <span className="text-sm font-medium text-gray-700">Total</span>
+              <span className="text-sm font-medium text-gray-700">
+                Total{product ? ` — ${product.name} × ${Number(quantity)}` : ''}
+              </span>
               <span className="text-xl font-bold text-gray-900">{formatCurrency(total)}</span>
             </div>
           )}
@@ -216,8 +286,8 @@ export default function OrderFormPage() {
           </button>
 
           <p className="text-xs text-gray-500 text-center">
-            You&apos;ll be redirected to Stripe to complete payment. Want more shirts in a
-            different size or color? Just submit the form again after checkout.
+            You&apos;ll be redirected to Stripe to complete payment. Want another item, or a
+            different size or color? Submit the form again after checkout.
           </p>
         </form>
       </main>

@@ -2,7 +2,7 @@ import { auth } from '@/auth';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { eventSchema, merchandiseEventSchema } from '@/lib/validations';
-import { merchEventData } from '@/lib/merch';
+import { merchEventData, merchProductData } from '@/lib/merch';
 import { ZodError } from 'zod';
 
 async function checkAuth() {
@@ -30,12 +30,56 @@ export async function PUT(
       return NextResponse.json({ error: 'Event not found' }, { status: 404 });
     }
 
-    // Merchandise events update via the reduced merch field set.
+    // Merchandise events: update the event, upsert its products by id, and
+    // delete products that were removed from the form — but only if they
+    // have no orders (a product with orders must be deactivated instead).
     if (body.formType === 'MERCHANDISE') {
       const validated = merchandiseEventSchema.parse(body);
-      const updated = await prisma.event.update({
-        where: { id },
-        data: merchEventData(validated),
+
+      const existing = await prisma.merchProduct.findMany({
+        where: { eventId: id },
+        include: { _count: { select: { orders: true } } },
+      });
+      const keepIds = new Set(
+        validated.products.map((p) => p.id).filter((v): v is string => Boolean(v))
+      );
+      const removed = existing.filter((p) => !keepIds.has(p.id));
+      const blocked = removed.filter((p) => p._count.orders > 0);
+      if (blocked.length > 0) {
+        return NextResponse.json(
+          {
+            error: `"${blocked[0].name}" has ${blocked[0]._count.orders} order(s) and can't be removed. Uncheck Active to hide it instead.`,
+            productIds: blocked.map((p) => p.id),
+          },
+          { status: 409 }
+        );
+      }
+
+      // Guard against ids that belong to another event.
+      const existingIds = new Set(existing.map((p) => p.id));
+      for (const p of validated.products) {
+        if (p.id && !existingIds.has(p.id)) {
+          return NextResponse.json({ error: 'Unknown product id' }, { status: 400 });
+        }
+      }
+
+      const updated = await prisma.$transaction(async (tx) => {
+        await tx.event.update({ where: { id }, data: merchEventData(validated) });
+        if (removed.length > 0) {
+          await tx.merchProduct.deleteMany({ where: { id: { in: removed.map((p) => p.id) } } });
+        }
+        for (const [i, p] of validated.products.entries()) {
+          const data = merchProductData(p, i);
+          if (p.id) {
+            await tx.merchProduct.update({ where: { id: p.id }, data });
+          } else {
+            await tx.merchProduct.create({ data: { ...data, eventId: id } });
+          }
+        }
+        return tx.event.findUniqueOrThrow({
+          where: { id },
+          include: { products: { orderBy: { sortOrder: 'asc' } } },
+        });
       });
       return NextResponse.json(updated);
     }

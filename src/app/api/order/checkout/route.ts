@@ -5,7 +5,8 @@ import { stripe } from '@/lib/stripe';
 import { merchandiseOrderSchema } from '@/lib/validations';
 import { isOrderWindowOpen } from '@/lib/merch';
 
-// POST: Create a Stripe Checkout session for a shirt order.
+// POST: Create a Stripe Checkout session for one merch order line
+// (one product, one size/color/fit, quantity N).
 // No DB row is written here — the order is recorded only after payment
 // succeeds (webhook / success-page confirm), keyed on the session id.
 export async function POST(request: NextRequest) {
@@ -25,15 +26,31 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Orders are closed for this event' }, { status: 400 });
     }
 
-    if (!event.unitPrice) {
-      return NextResponse.json({ error: 'This event has no price configured' }, { status: 400 });
+    // The product must belong to this event and be active; every option the
+    // buyer chose must be one the product actually offers.
+    const product = await prisma.merchProduct.findFirst({
+      where: { id: data.productId, eventId: event.id, isActive: true },
+    });
+    if (!product) {
+      return NextResponse.json({ error: 'Selected item is not available' }, { status: 400 });
     }
 
-    if (!event.availableColors.includes(data.color)) {
+    if (!product.availableColors.includes(data.color)) {
       return NextResponse.json({ error: 'Selected color is not available' }, { status: 400 });
     }
+    if (!product.sizes.includes(data.size)) {
+      return NextResponse.json({ error: 'Selected size is not available' }, { status: 400 });
+    }
 
-    const unitPrice = Number(event.unitPrice);
+    let fit: string | null = null;
+    if (product.fits.length > 0) {
+      if (!data.fit || !product.fits.includes(data.fit)) {
+        return NextResponse.json({ error: 'Please select a fit' }, { status: 400 });
+      }
+      fit = data.fit;
+    }
+
+    const unitPrice = Number(product.unitPrice);
     const unitPriceInCents = Math.round(unitPrice * 100);
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
@@ -44,7 +61,8 @@ export async function POST(request: NextRequest) {
           price_data: {
             currency: 'usd',
             product_data: {
-              name: `${event.name} - ${data.fit} / ${data.color} / ${data.size}`,
+              name: `${product.name} — ${[fit, data.color, data.size].filter(Boolean).join(' / ')}`,
+              description: event.name,
             },
             unit_amount: unitPriceInCents,
           },
@@ -58,9 +76,12 @@ export async function POST(request: NextRequest) {
       metadata: {
         merch: 'true',
         event_id: event.id,
+        product_id: product.id,
+        product_name: product.name,
         name: data.name,
         email: data.email,
-        fit: data.fit,
+        // Omitted (not empty) when the product has no fit options.
+        ...(fit ? { fit } : {}),
         size: data.size,
         color: data.color,
         quantity: String(data.quantity),

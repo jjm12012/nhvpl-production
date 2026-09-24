@@ -137,6 +137,7 @@ export async function sendConfirmationEmailForRegistration(
 
 interface MerchOrderEmailData {
   eventName: string;
+  productName: string;
   name: string;
   email: string;
   fit: string | null;
@@ -162,6 +163,7 @@ function renderMerchOrderHtml(data: MerchOrderEmailData, heading: string, intro:
         <table style="width:100%;border-collapse:collapse;font-size:14px;color:#374151;">
           <tr><td style="padding:4px 0;width:140px;color:#6b7280;">Name</td><td style="padding:4px 0;">${escapeHtml(data.name)}</td></tr>
           <tr><td style="padding:4px 0;color:#6b7280;">Event</td><td style="padding:4px 0;">${escapeHtml(data.eventName)}</td></tr>
+          <tr><td style="padding:4px 0;color:#6b7280;">Item</td><td style="padding:4px 0;">${escapeHtml(data.productName)}</td></tr>
           ${data.fit ? `<tr><td style="padding:4px 0;color:#6b7280;">Fit</td><td style="padding:4px 0;">${escapeHtml(data.fit)}</td></tr>` : ''}
           <tr><td style="padding:4px 0;color:#6b7280;">Size</td><td style="padding:4px 0;">${escapeHtml(data.size)}</td></tr>
           <tr><td style="padding:4px 0;color:#6b7280;">Color</td><td style="padding:4px 0;">${escapeHtml(data.color)}</td></tr>
@@ -205,6 +207,7 @@ export async function sendMerchOrderEmails(orderId: string): Promise<void> {
 
   const data: MerchOrderEmailData = {
     eventName: order.event.name,
+    productName: order.productName,
     name: order.name,
     email: order.email,
     fit: order.fit,
@@ -220,7 +223,7 @@ export async function sendMerchOrderEmails(orderId: string): Promise<void> {
     await resend.emails.send({
       from: FROM_ADDRESS,
       to: order.email,
-      subject: 'Your shirt order is confirmed! 🎽',
+      subject: 'Your NHVPL merch order is confirmed! 🎽',
       html: renderMerchOrderHtml(
         data,
         `Order confirmed, ${escapeHtml(order.name.split(' ')[0])}!`,
@@ -238,10 +241,10 @@ export async function sendMerchOrderEmails(orderId: string): Promise<void> {
     await resend.emails.send({
       from: FROM_ADDRESS,
       to: adminEmail,
-      subject: `New shirt order — ${order.name}`,
+      subject: `New merch order — ${order.name} (${order.productName})`,
       html: renderMerchOrderHtml(
         data,
-        'New shirt order received',
+        'New merch order received',
         `${escapeHtml(order.name)} (${escapeHtml(order.email)}) just placed an order.`
       ),
     });

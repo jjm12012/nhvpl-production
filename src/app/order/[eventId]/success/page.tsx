@@ -9,6 +9,7 @@ import { formatCurrency } from '@/lib/utils';
 interface ConfirmedOrder {
   id: string;
   eventName: string;
+  productName: string;
   name: string;
   email: string;
   fit: string | null;
@@ -94,6 +95,10 @@ export default function OrderSuccessPage() {
               <span className="text-gray-500">Event</span>
               <span className="font-medium text-gray-900">{order.eventName}</span>
             </div>
+            <div className="flex justify-between px-4 py-3">
+              <span className="text-gray-500">Item</span>
+              <span className="font-medium text-gray-900">{order.productName}</span>
+            </div>
             {order.fit && (
               <div className="flex justify-between px-4 py-3">
                 <span className="text-gray-500">Fit</span>
@@ -120,7 +125,7 @@ export default function OrderSuccessPage() {
 
           <div className="mt-8">
             <Link href={`/order/${eventId}`} className="btn btn-secondary">
-              Order more shirts
+              Order more merch
             </Link>
           </div>
         </div>

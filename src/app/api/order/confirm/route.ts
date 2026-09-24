@@ -37,6 +37,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       id: order.id,
       eventName: event?.name ?? '',
+      productName: order.productName,
       name: order.name,
       email: order.email,
       fit: order.fit,

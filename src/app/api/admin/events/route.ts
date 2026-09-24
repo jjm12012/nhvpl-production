@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { eventSchema, merchandiseEventSchema } from '@/lib/validations';
-import { merchEventData } from '@/lib/merch';
+import { merchEventData, merchProductData } from '@/lib/merch';
 import { ZodError } from 'zod';
 import { auth } from '@/auth';
 
@@ -21,7 +21,10 @@ export async function GET(request: NextRequest) {
 
     const events = await prisma.event.findMany({
       orderBy: { startDate: 'desc' },
-      include: { _count: { select: { registrations: true, merchandiseOrders: true } } },
+      include: {
+        _count: { select: { registrations: true, merchandiseOrders: true } },
+        products: { orderBy: { sortOrder: 'asc' } },
+      },
     });
 
     return NextResponse.json(events);
@@ -47,7 +50,13 @@ export async function POST(request: NextRequest) {
     if (body.formType === 'MERCHANDISE') {
       const validated = merchandiseEventSchema.parse(body);
       const event = await prisma.event.create({
-        data: merchEventData(validated),
+        data: {
+          ...merchEventData(validated),
+          products: {
+            create: validated.products.map((p, i) => merchProductData(p, i)),
+          },
+        },
+        include: { products: { orderBy: { sortOrder: 'asc' } } },
       });
       return NextResponse.json(event, { status: 201 });
     }

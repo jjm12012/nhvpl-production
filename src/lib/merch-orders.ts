@@ -22,15 +22,17 @@ export async function recordPaidMerchOrder(
 
   const metadata = session.metadata || {};
   const eventId = metadata.event_id;
+  const productId = metadata.product_id;
+  const productName = metadata.product_name;
   const name = metadata.name;
   const email = metadata.email;
-  const fit = metadata.fit;
+  const fit = metadata.fit || null; // absent for products without fit options
   const size = metadata.size;
   const color = metadata.color;
   const quantity = parseInt(metadata.quantity || '1', 10);
   const unitPrice = parseFloat(metadata.unit_price || '0');
 
-  if (!eventId || !name || !email || !fit || !size || !color) {
+  if (!eventId || !productId || !productName || !name || !email || !size || !color) {
     console.warn('[merch] checkout session missing order metadata, skipping', session.id);
     return null;
   }
@@ -52,6 +54,8 @@ export async function recordPaidMerchOrder(
     order = await prisma.merchandiseOrder.create({
       data: {
         eventId,
+        productId,
+        productName,
         name,
         email,
         fit,

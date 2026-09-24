@@ -85,18 +85,56 @@ export const eventSchema = z.object({
 export type EventInput = z.infer<typeof eventSchema>;
 
 // ---------------------------------------------------------------------------
-// Merchandise (shirt order) feature
+// Merchandise feature (events sell one or more products)
 // ---------------------------------------------------------------------------
 
-// Hardcoded shirt sizes (not admin-configurable).
-export const SHIRT_SIZES = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL'] as const;
+// Default option lists prefilled into a NEW product row in admin. These are
+// no longer validation enums: every product carries its own admin-editable
+// sizes/fits/colors, and orders are validated against the product server-side.
+export const DEFAULT_PRODUCT_SIZES = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL'] as const;
+export const DEFAULT_PRODUCT_FITS = ["Men's", "Women's"] as const;
 
-// Hardcoded shirt fits / cuts (not admin-configurable). Same color, different
-// garment cut. Required on every new order.
-export const SHIRT_FITS = ["Men's", "Women's"] as const;
+// Comma-separated admin input -> trimmed, de-duplicated string[].
+const csvList = z
+  .string()
+  .transform((value) =>
+    Array.from(
+      new Set(
+        value
+          .split(',')
+          .map((v) => v.trim())
+          .filter(Boolean)
+      )
+    )
+  );
 
-// Admin creates/edits a merchandise event with a reduced field set.
-// Colors are entered as a comma-separated string and stored as TEXT[].
+// One product under a merchandise event. `id` is present when editing an
+// existing product so the API can upsert by id. An empty `fits` list means
+// the order form does not ask for a fit.
+export const merchProductSchema = z.object({
+  id: z.string().min(1).optional(),
+  name: z
+    .string()
+    .min(1, 'Product name is required')
+    .max(100, 'Product name must be at most 100 characters')
+    .trim(),
+  description: z.string().max(500).optional(),
+  unitPrice: z.coerce.number().positive('Price must be positive'),
+  availableColors: csvList.refine((v) => v.length > 0, {
+    message: 'At least one color is required',
+  }),
+  sizes: csvList.refine((v) => v.length > 0, {
+    message: 'At least one size is required',
+  }),
+  fits: csvList,
+  sortOrder: z.coerce.number().int().nonnegative().default(0),
+  isActive: z.boolean().default(true),
+});
+
+export type MerchProductInput = z.infer<typeof merchProductSchema>;
+
+// Admin creates/edits a merchandise event: name, description, order window,
+// and one or more products.
 export const merchandiseEventSchema = z.object({
   formType: z.literal('MERCHANDISE'),
   name: z
@@ -104,22 +142,10 @@ export const merchandiseEventSchema = z.object({
     .min(1, 'Event name is required')
     .max(255, 'Event name must be at most 255 characters'),
   description: z.string().optional(),
-  unitPrice: z.coerce.number().positive('Unit price must be positive'),
-  availableColors: z
-    .string()
-    .min(1, 'At least one color is required')
-    .transform((value) =>
-      value
-        .split(',')
-        .map((c) => c.trim())
-        .filter(Boolean)
-    )
-    .refine((colors) => colors.length > 0, {
-      message: 'At least one color is required',
-    }),
   orderOpenDate: z.coerce.date(),
   orderCloseDate: z.coerce.date(),
   isActive: z.boolean().default(true),
+  products: z.array(merchProductSchema).min(1, 'Add at least one product'),
 }).refine((data) => data.orderOpenDate < data.orderCloseDate, {
   message: 'Order open date must be before close date',
   path: ['orderCloseDate'],
@@ -127,9 +153,12 @@ export const merchandiseEventSchema = z.object({
 
 export type MerchandiseEventInput = z.infer<typeof merchandiseEventSchema>;
 
-// Public shirt order form submission (pre-Stripe checkout).
+// Public order form submission (pre-Stripe checkout). Size/color/fit are
+// plain strings here; the checkout route checks them against the chosen
+// product's option lists.
 export const merchandiseOrderSchema = z.object({
   eventId: z.string().min(1, 'Event ID is required'),
+  productId: z.string().min(1, 'Please select an item'),
   name: z
     .string()
     .min(2, 'Full name must be at least 2 characters')
@@ -139,13 +168,9 @@ export const merchandiseOrderSchema = z.object({
     .string()
     .email('Invalid email address')
     .toLowerCase(),
-  fit: z.enum(SHIRT_FITS, {
-    errorMap: () => ({ message: 'Please select a fit' }),
-  }),
-  size: z.enum(SHIRT_SIZES, {
-    errorMap: () => ({ message: 'Please select a shirt size' }),
-  }),
-  color: z.string().min(1, 'Please select a shirt color'),
+  fit: z.string().optional(),
+  size: z.string().min(1, 'Please select a size'),
+  color: z.string().min(1, 'Please select a color'),
   quantity: z.coerce
     .number()
     .int('Quantity must be a whole number')

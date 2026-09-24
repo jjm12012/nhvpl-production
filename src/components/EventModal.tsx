@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { X, Loader2 } from 'lucide-react';
+import { X, Loader2, Plus, Trash2 } from 'lucide-react';
+import { DEFAULT_PRODUCT_SIZES, DEFAULT_PRODUCT_FITS } from '@/lib/validations';
 
 interface Event {
   id: string;
@@ -23,10 +24,47 @@ interface Event {
   maxAdvancedB?: number | null;
   isActive: boolean;
   formType?: 'LEAGUE' | 'MERCHANDISE';
-  unitPrice?: number | null;
-  availableColors?: string[];
   orderOpenDate?: Date | string | null;
   orderCloseDate?: Date | string | null;
+  products?: {
+    id: string;
+    name: string;
+    description: string | null;
+    unitPrice: number | string;
+    availableColors: string[];
+    sizes: string[];
+    fits: string[];
+    sortOrder: number;
+    isActive: boolean;
+  }[];
+}
+
+// One editable product row in the merch section of the form. List fields
+// are edited as comma-separated text and split server-side.
+interface ProductRow {
+  id?: string;
+  key: string; // stable React key for unsaved rows
+  name: string;
+  description: string;
+  unitPrice: string;
+  availableColors: string;
+  sizes: string;
+  fits: string;
+  isActive: boolean;
+}
+
+let rowSeq = 0;
+function newProductRow(): ProductRow {
+  return {
+    key: `new-${++rowSeq}`,
+    name: '',
+    description: '',
+    unitPrice: '',
+    availableColors: '',
+    sizes: DEFAULT_PRODUCT_SIZES.join(', '),
+    fits: DEFAULT_PRODUCT_FITS.join(', '),
+    isActive: true,
+  };
 }
 
 // Format a date value for a datetime-local input (YYYY-MM-DDTHH:mm).
@@ -48,11 +86,10 @@ export default function EventModal({ event, onClose, onSave }: EventModalProps) 
     event?.formType || 'LEAGUE'
   );
   const [merchData, setMerchData] = useState({
-    unitPrice: '',
-    availableColors: '',
     orderOpenDate: '',
     orderCloseDate: '',
   });
+  const [products, setProducts] = useState<ProductRow[]>([newProductRow()]);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -106,11 +143,26 @@ export default function EventModal({ event, onClose, onSave }: EventModalProps) 
       });
       setFormType(event.formType || 'LEAGUE');
       setMerchData({
-        unitPrice: event.unitPrice != null ? event.unitPrice.toString() : '',
-        availableColors: (event.availableColors || []).join(', '),
         orderOpenDate: toDateTimeLocal(event.orderOpenDate),
         orderCloseDate: toDateTimeLocal(event.orderCloseDate),
       });
+      if (event.products && event.products.length > 0) {
+        setProducts(
+          [...event.products]
+            .sort((a, b) => a.sortOrder - b.sortOrder)
+            .map((p) => ({
+              id: p.id,
+              key: p.id,
+              name: p.name,
+              description: p.description || '',
+              unitPrice: String(p.unitPrice),
+              availableColors: p.availableColors.join(', '),
+              sizes: p.sizes.join(', '),
+              fits: p.fits.join(', '),
+              isActive: p.isActive,
+            }))
+        );
+      }
     }
   }, [event]);
 
@@ -123,11 +175,20 @@ export default function EventModal({ event, onClose, onSave }: EventModalProps) 
           formType: 'MERCHANDISE',
           name: formData.name,
           description: formData.description || undefined,
-          unitPrice: parseFloat(merchData.unitPrice),
-          availableColors: merchData.availableColors,
           orderOpenDate: merchData.orderOpenDate,
           orderCloseDate: merchData.orderCloseDate,
           isActive: formData.isActive,
+          products: products.map((p, i) => ({
+            id: p.id,
+            name: p.name,
+            description: p.description || undefined,
+            unitPrice: parseFloat(p.unitPrice),
+            availableColors: p.availableColors,
+            sizes: p.sizes,
+            fits: p.fits,
+            sortOrder: i,
+            isActive: p.isActive,
+          })),
         });
         return;
       }
@@ -162,6 +223,14 @@ export default function EventModal({ event, onClose, onSave }: EventModalProps) 
   const handleMerchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setMerchData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const updateProduct = (key: string, patch: Partial<ProductRow>) => {
+    setProducts((prev) => prev.map((p) => (p.key === key ? { ...p, ...patch } : p)));
+  };
+
+  const removeProduct = (key: string) => {
+    setProducts((prev) => (prev.length > 1 ? prev.filter((p) => p.key !== key) : prev));
   };
 
   return (
@@ -228,27 +297,6 @@ export default function EventModal({ event, onClose, onSave }: EventModalProps) 
             <>
               <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <label htmlFor="unitPrice" className="label">Unit Price (USD) *</label>
-                  <input
-                    id="unitPrice" name="unitPrice" type="number" step="0.01" min="0.01"
-                    value={merchData.unitPrice} onChange={handleMerchChange}
-                    placeholder="25.00" className="input" required
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Price per shirt</p>
-                </div>
-                <div>
-                  <label htmlFor="availableColors" className="label">Available Colors *</label>
-                  <input
-                    id="availableColors" name="availableColors" type="text"
-                    value={merchData.availableColors} onChange={handleMerchChange}
-                    placeholder="Navy, White, Grey" className="input" required
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Comma-separated list</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-6">
-                <div>
                   <label htmlFor="orderOpenDate" className="label">Order Open Date *</label>
                   <input
                     id="orderOpenDate" name="orderOpenDate" type="datetime-local"
@@ -263,6 +311,111 @@ export default function EventModal({ event, onClose, onSave }: EventModalProps) 
                     value={merchData.orderCloseDate} onChange={handleMerchChange}
                     className="input" required
                   />
+                </div>
+              </div>
+
+              {/* Products */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="label mb-0">Products *</label>
+                  <button
+                    type="button"
+                    onClick={() => setProducts((prev) => [...prev, newProductRow()])}
+                    className="inline-flex items-center gap-1 text-sm font-medium text-primary-600 hover:text-primary-700"
+                  >
+                    <Plus className="w-4 h-4" /> Add product
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500 mb-3">
+                  Each product (e.g. T-Shirt, Hoodie) has its own price and options. Buyers pick one
+                  product per checkout. Lists are comma-separated.
+                </p>
+                <div className="space-y-4">
+                  {products.map((p, index) => (
+                    <div key={p.key} className="rounded-lg border border-gray-200 p-4 space-y-4 bg-gray-50">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-semibold text-gray-700">Product {index + 1}</span>
+                        <div className="flex items-center gap-4">
+                          <label className="flex items-center gap-2 text-sm text-gray-700">
+                            <input
+                              type="checkbox" className="w-4 h-4 text-primary-600"
+                              checked={p.isActive}
+                              onChange={(e) => updateProduct(p.key, { isActive: e.target.checked })}
+                            />
+                            Active
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => removeProduct(p.key)}
+                            disabled={products.length === 1}
+                            className="p-1 text-gray-400 hover:text-red-600 disabled:opacity-30 disabled:hover:text-gray-400 transition"
+                            title={products.length === 1 ? 'At least one product is required' : 'Remove product'}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-4">
+                        <div className="col-span-2">
+                          <label className="text-xs font-medium text-gray-700 mb-1 block">Name *</label>
+                          <input
+                            type="text" className="input" placeholder="T-Shirt" required
+                            value={p.name}
+                            onChange={(e) => updateProduct(p.key, { name: e.target.value })}
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs font-medium text-gray-700 mb-1 block">Price (USD) *</label>
+                          <input
+                            type="number" step="0.01" min="0.01" className="input" placeholder="25.00" required
+                            value={p.unitPrice}
+                            onChange={(e) => updateProduct(p.key, { unitPrice: e.target.value })}
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-medium text-gray-700 mb-1 block">Description</label>
+                        <input
+                          type="text" className="input" placeholder="Optional — shown under the product name"
+                          value={p.description}
+                          onChange={(e) => updateProduct(p.key, { description: e.target.value })}
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-medium text-gray-700 mb-1 block">Colors *</label>
+                        <input
+                          type="text" className="input" placeholder="Navy, White, Grey" required
+                          value={p.availableColors}
+                          onChange={(e) => updateProduct(p.key, { availableColors: e.target.value })}
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-xs font-medium text-gray-700 mb-1 block">Sizes *</label>
+                          <input
+                            type="text" className="input" required
+                            value={p.sizes}
+                            onChange={(e) => updateProduct(p.key, { sizes: e.target.value })}
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs font-medium text-gray-700 mb-1 block">Fits</label>
+                          <input
+                            type="text" className="input" placeholder="Leave blank if one cut"
+                            value={p.fits}
+                            onChange={(e) => updateProduct(p.key, { fits: e.target.value })}
+                          />
+                          <p className="text-xs text-gray-500 mt-1">
+                            Blank = the form won&apos;t ask for a fit (e.g. unisex hoodie).
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </>

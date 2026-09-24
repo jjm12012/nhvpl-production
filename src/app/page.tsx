@@ -69,8 +69,12 @@ async function getOpenMerchEvents() {
         id: true,
         name: true,
         description: true,
-        unitPrice: true,
         orderCloseDate: true,
+        products: {
+          where: { isActive: true },
+          orderBy: { sortOrder: 'asc' },
+          select: { id: true, name: true, unitPrice: true },
+        },
       },
       orderBy: { orderCloseDate: 'asc' },
     });
@@ -187,7 +191,7 @@ export default async function HomePage() {
                   className="inline-flex items-center gap-2 bg-white text-primary-600 font-semibold px-6 py-3 rounded-lg hover:bg-primary-50 transition shadow-sm"
                 >
                   <ShoppingBag className="w-4 h-4" />
-                  Order T-Shirts
+                  Order Merch
                 </Link>
               )}
             </div>
@@ -257,11 +261,14 @@ export default async function HomePage() {
                   )}
                   <div className="mt-auto flex items-center justify-between gap-4">
                     <div>
-                      {event.unitPrice != null && (
-                        <p className="text-lg font-bold text-primary-600">
-                          ${Number(event.unitPrice).toFixed(2)}
+                      {event.products.map((p) => (
+                        <p key={p.id} className="text-gray-900">
+                          <span className="font-medium">{p.name}</span>{' '}
+                          <span className="font-bold text-primary-600">
+                            ${Number(p.unitPrice).toFixed(2)}
+                          </span>
                         </p>
-                      )}
+                      ))}
                       {event.orderCloseDate && (
                         <p className="text-xs text-gray-500">
                           Order by{' '}

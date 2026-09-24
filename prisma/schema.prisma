@@ -71,30 +71,64 @@ model Event {
   // Merchandise order form support. formType selects which public form the
   // event renders; existing events default to LEAGUE with NULL merch fields.
   formType          FormType           @default(LEAGUE)
-  unitPrice         Decimal?           @db.Decimal(10, 2) // price per shirt
-  availableColors   String[]           @default([]) // e.g. ['Navy', 'White', 'Grey']
+  // DEPRECATED: price/colors now live on MerchProduct (one event holds many
+  // products). Kept for one release so the migration is reversible; nothing
+  // reads these after 2026-09 merch products migration. Drop in a follow-up.
+  unitPrice         Decimal?           @db.Decimal(10, 2)
+  availableColors   String[]           @default([])
   orderOpenDate     DateTime?
   orderCloseDate    DateTime?
   merchandiseOrders MerchandiseOrder[]
+  products          MerchProduct[]
 
   @@index([isActive])
   @@index([year, season])
 }
 
-// One row per submitted shirt order. No cart/multi-item logic: each form
-// submission = one Stripe transaction = one row here. Rows are written by the
-// Stripe webhook (and the success-page confirm endpoint, idempotently) only
-// after payment succeeds.
+// One product (an item type such as "T-Shirt" or "Hoodie") sold under a
+// merchandise event. Each product carries its own price and its own option
+// lists. An empty `fits` list means the order form does not ask for a fit
+// (e.g. a unisex hoodie). Products with orders cannot be deleted directly
+// (NoAction FK, checked at statement end so an Event cascade still works);
+// deactivate them instead to hide them from the form.
+model MerchProduct {
+  id              String   @id @default(cuid())
+  eventId         String
+  event           Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  name            String
+  description     String?
+  unitPrice       Decimal  @db.Decimal(10, 2)
+  availableColors String[] @default([])
+  sizes           String[] @default([])
+  fits            String[] @default([])
+  sortOrder       Int      @default(0)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  orders          MerchandiseOrder[]
+
+  @@index([eventId])
+}
+
+// One row per submitted merch order. No cart/multi-item logic: each form
+// submission = one product line = one Stripe transaction = one row here.
+// Rows are written by the Stripe webhook (and the success-page confirm
+// endpoint, idempotently) only after payment succeeds.
 model MerchandiseOrder {
   id                    String   @id @default(cuid())
   eventId               String
   event                 Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  productId             String
+  product               MerchProduct @relation(fields: [productId], references: [id], onDelete: NoAction)
+  // Snapshot of the product name at purchase time so emails/CSV stay stable
+  // if an admin later renames the product.
+  productName           String
   createdAt             DateTime @default(now())
   name                  String
   email                 String
   // Garment cut requested by the buyer (e.g. "Men's" / "Women's").
-  // Nullable so orders placed before this column existed remain valid;
-  // the public order form requires it for all new orders.
+  // Null when the product has no fit options, or for orders placed before
+  // this column existed.
   fit                   String?
   size                  String
   color                 String
@@ -106,6 +140,7 @@ model MerchandiseOrder {
   stripePaymentStatus   String   @default("pending") // 'pending' | 'paid' | 'refunded'
 
   @@index([eventId])
+  @@index([productId])
   @@index([email])
 }
 

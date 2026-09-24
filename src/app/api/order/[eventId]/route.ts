@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+
+export const dynamic = 'force-dynamic';
 import { prisma } from '@/lib/prisma';
-import { isOrderWindowOpen } from '@/lib/merch';
+import { isOrderWindowOpen, publicProduct } from '@/lib/merch';
 
 // GET: Public details for a merchandise event, consumed by /order/[eventId].
 export async function GET(
@@ -10,6 +12,9 @@ export async function GET(
   try {
     const event = await prisma.event.findUnique({
       where: { id: params.eventId },
+      include: {
+        products: { where: { isActive: true }, orderBy: { sortOrder: 'asc' } },
+      },
     });
 
     if (!event || event.formType !== 'MERCHANDISE') {
@@ -20,11 +25,10 @@ export async function GET(
       id: event.id,
       name: event.name,
       description: event.description,
-      unitPrice: event.unitPrice ? Number(event.unitPrice) : null,
-      availableColors: event.availableColors,
       orderOpenDate: event.orderOpenDate,
       orderCloseDate: event.orderCloseDate,
       isOpen: isOrderWindowOpen(event),
+      products: event.products.map(publicProduct),
     });
   } catch (error) {
     console.error('Error fetching merch event:', error);

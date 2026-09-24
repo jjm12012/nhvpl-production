@@ -23,10 +23,19 @@ interface Event {
   maxAdvancedB?: number | null;
   isActive: boolean;
   formType?: 'LEAGUE' | 'MERCHANDISE';
-  unitPrice?: number | null;
-  availableColors?: string[];
   orderOpenDate?: string | null;
   orderCloseDate?: string | null;
+  products?: {
+    id: string;
+    name: string;
+    description: string | null;
+    unitPrice: number | string;
+    availableColors: string[];
+    sizes: string[];
+    fits: string[];
+    sortOrder: number;
+    isActive: boolean;
+  }[];
   _count?: {
     registrations: number;
     merchandiseOrders?: number;
@@ -95,7 +104,10 @@ export default function EventsPage() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to save event');
+        // Surface the server's reason (e.g. 409 when removing a product that
+        // has orders, or a validation message) instead of a generic failure.
+        const body = await response.json().catch(() => ({}));
+        throw new Error(body?.error || 'Failed to save event');
       }
 
       toast.success(selectedEvent ? 'Event updated' : 'Event created');
@@ -103,7 +115,7 @@ export default function EventsPage() {
       fetchEvents();
     } catch (error) {
       console.error('Error saving event:', error);
-      toast.error('Failed to save event');
+      toast.error(error instanceof Error ? error.message : 'Failed to save event');
     }
   };
 
@@ -202,9 +214,14 @@ export default function EventsPage() {
                         <p className="font-medium text-gray-900">{event.name}</p>
                         <p className="text-xs text-gray-500">
                           {event.formType === 'MERCHANDISE' ? (
-                            <span className="inline-flex px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 font-medium">
-                              Merch
-                            </span>
+                            <>
+                              <span className="inline-flex px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 font-medium">
+                                Merch
+                              </span>
+                              <span className="ml-2">
+                                {event.products?.length ?? 0} product{(event.products?.length ?? 0) === 1 ? '' : 's'}
+                              </span>
+                            </>
                           ) : (
                             <>{event.season} {event.year}</>
                           )}
@@ -219,7 +236,18 @@ export default function EventsPage() {
                       {event.location || '—'}
                     </td>
                     <td className="px-6 py-4 font-medium text-gray-900">
-                      {formatCurrency(event.price, event.currency)}
+                      {event.formType === 'MERCHANDISE' ? (
+                        <div className="space-y-0.5">
+                          {(event.products ?? []).map((p) => (
+                            <p key={p.id} className={p.isActive ? '' : 'text-gray-400 line-through'}>
+                              <span className="font-normal text-gray-600">{p.name}</span>{' '}
+                              {formatCurrency(Number(p.unitPrice), event.currency)}
+                            </p>
+                          ))}
+                        </div>
+                      ) : (
+                        formatCurrency(event.price, event.currency)
+                      )}
                     </td>
                     <td className="px-6 py-4 text-gray-900">
                       {event.formType === 'MERCHANDISE' ? (
