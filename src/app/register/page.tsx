@@ -56,9 +56,9 @@ export default async function EventSelectionPage() {
   const c = await getContentMap('register_landing');
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
+    <div className="flex flex-col min-h-screen bg-paper">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200">
+      <header className="bg-paper/90 backdrop-blur border-b border-primary-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <Link href="/" className="text-primary-600 hover:text-primary-700 font-medium">
             &larr; Back to Home
@@ -166,7 +166,7 @@ export default async function EventSelectionPage() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white border-t border-gray-800 py-8 mt-12">
+      <footer className="bg-bark text-white border-t border-white/10 py-8 mt-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-gray-400 text-sm text-center">
             <Content content={c.register_landing_footer_help} inline />

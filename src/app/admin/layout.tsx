@@ -8,12 +8,14 @@ async function AdminLayout({ children }: { children: React.ReactNode }) {
 
   // If not authenticated, render children without sidebar (login page)
   // The middleware handles redirecting unauthenticated users away from protected routes
+  // `.theme-admin` restores the neutral blue palette; the public site
+  // wears the seasonal theme defined in globals.css.
   if (!session) {
-    return <>{children}</>;
+    return <div className="theme-admin min-h-screen">{children}</div>;
   }
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="theme-admin flex h-screen bg-gray-100">
       {/* Sidebar */}
       <aside className="w-64 bg-gray-900 text-white flex flex-col">
         {/* Logo */}

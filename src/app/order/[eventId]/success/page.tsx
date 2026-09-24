@@ -56,7 +56,7 @@ export default function OrderSuccessPage() {
 
   if (state === 'loading') {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-paper">
         <Loader2 className="w-8 h-8 animate-spin text-primary-600 mb-4" />
         <p className="text-gray-600">Confirming your order...</p>
       </div>
@@ -65,7 +65,7 @@ export default function OrderSuccessPage() {
 
   if (state === 'error' || !order) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 px-4">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-paper px-4">
         <AlertCircle className="w-10 h-10 text-amber-500 mb-4" />
         <h1 className="text-xl font-semibold text-gray-900 mb-2">We couldn&apos;t confirm your order</h1>
         <p className="text-gray-600 mb-6 text-center max-w-md">
@@ -78,7 +78,7 @@ export default function OrderSuccessPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
+    <div className="flex flex-col min-h-screen bg-paper">
       <main className="flex-1 max-w-2xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="card p-8 bg-white text-center">
           <CheckCircle2 className="w-12 h-12 text-accent-600 mx-auto mb-4" />

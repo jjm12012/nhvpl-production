@@ -100,11 +100,11 @@ export default async function HomePage() {
   return (
     <div className="flex flex-col min-h-screen">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200">
+      <header className="bg-paper/90 backdrop-blur border-b border-primary-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-700 rounded-lg flex items-center justify-center shadow-warm">
                 <Trophy className="w-5 h-5 text-white" />
               </div>
               <div>
@@ -126,22 +126,27 @@ export default async function HomePage() {
       </header>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-primary-600 via-primary-500 to-blue-400 py-20 sm:py-32">
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-white opacity-5 rounded-full blur-3xl" />
-          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-white opacity-5 rounded-full blur-3xl" />
+      <section className="relative overflow-hidden hero-autumn py-20 sm:py-32">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+          <div className="absolute -top-40 -right-40 w-96 h-96 bg-primary-200 opacity-10 rounded-full blur-3xl" />
+          <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-primary-900 opacity-30 rounded-full blur-3xl" />
+          {/* Drifting leaf silhouettes */}
+          <FallLeaf className="absolute -left-6 top-10 w-40 h-40 text-primary-200/20 -rotate-12" />
+          <FallLeaf className="absolute right-8 top-1/3 w-24 h-24 text-primary-100/15 rotate-45" />
+          <FallLeaf className="absolute right-1/4 -bottom-8 w-56 h-56 text-primary-900/25 rotate-[160deg]" />
+          <FallLeaf className="absolute left-1/4 bottom-6 w-16 h-16 text-primary-100/20 rotate-[25deg] hidden sm:block" />
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             {activeEvent && (
-              <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full mb-6 border border-white/30">
-                <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
+              <div className="inline-flex items-center gap-2 bg-primary-900/30 backdrop-blur-sm px-4 py-2 rounded-full mb-6 border border-primary-200/40">
+                <span className="w-2 h-2 bg-primary-200 rounded-full animate-pulse" />
                 <span className="text-sm font-medium text-white">
                   {activeEvent.season} {activeEvent.year} Registration Now Open
                 </span>
               </div>
             )}
-            <h1 className="text-5xl sm:text-6xl font-bold text-white mb-4">
+            <h1 className="text-5xl sm:text-6xl font-bold text-white mb-4 drop-shadow-sm">
               New Haven Pickleball League
             </h1>
             <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
@@ -149,7 +154,7 @@ export default async function HomePage() {
               friends, and compete in a supportive community.
             </p>
             {activeEvent && (
-              <div className="bg-white/95 backdrop-blur-sm rounded-lg p-8 mb-8 inline-block">
+              <div className="bg-paper/95 backdrop-blur-sm rounded-xl p-8 mb-8 inline-block shadow-warm border border-primary-100">
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 text-left">
                   <div>
                     <p className="text-sm text-gray-600 font-medium">Location</p>
@@ -188,7 +193,7 @@ export default async function HomePage() {
               {merchEvents.length > 0 && (
                 <Link
                   href={`/order/${merchEvents[0].id}`}
-                  className="inline-flex items-center gap-2 bg-white text-primary-600 font-semibold px-6 py-3 rounded-lg hover:bg-primary-50 transition shadow-sm"
+                  className="inline-flex items-center gap-2 bg-paper text-primary-700 font-semibold px-6 py-3 rounded-lg hover:bg-primary-50 transition shadow-warm"
                 >
                   <ShoppingBag className="w-4 h-4" />
                   Order Merch
@@ -206,7 +211,7 @@ export default async function HomePage() {
       </section>
 
       {/* Features */}
-      <section className="py-16 sm:py-20 bg-gray-50">
+      <section className="py-16 sm:py-20 bg-paper">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-center mb-12 text-gray-900">Why Join NHVPL?</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
@@ -221,8 +226,8 @@ export default async function HomePage() {
               </p>
             </div>
             <div className="card p-6">
-              <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center mb-4">
-                <Clock className="w-6 h-6 text-primary-600" />
+              <div className="w-12 h-12 bg-accent-100 rounded-lg flex items-center justify-center mb-4">
+                <Clock className="w-6 h-6 text-accent-700" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">10-Week Season</h3>
               <p className="text-gray-600">
@@ -246,7 +251,7 @@ export default async function HomePage() {
 
       {/* Merch Section — only rendered when a merch order window is open */}
       {merchEvents.length > 0 && (
-        <section className="py-16 sm:py-20 bg-white">
+        <section className="py-16 sm:py-20 bg-primary-50/60 border-y border-primary-100">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 className="text-3xl font-bold text-center mb-12 text-gray-900">League Merch</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
@@ -292,8 +297,9 @@ export default async function HomePage() {
       )}
 
       {/* CTA Section */}
-      <section className="py-16 sm:py-20 bg-primary-50">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <section className="relative overflow-hidden py-16 sm:py-20 bg-gradient-to-b from-primary-50 to-primary-100">
+        <FallLeaf className="absolute -right-10 -bottom-10 w-48 h-48 text-primary-300/30 rotate-12 pointer-events-none" aria-hidden="true" />
+        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">Ready to Join the League?</h2>
           <p className="text-gray-600 text-lg mb-8">
             Registration is open now. Don&apos;t miss your chance to be part of New Haven&apos;s
@@ -309,23 +315,23 @@ export default async function HomePage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
+      <footer className="bg-bark text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-8">
             <div>
               <h3 className="font-bold mb-4 flex items-center gap-2">
                 <Trophy className="w-5 h-5" /> NHVPL
               </h3>
-              <p className="text-gray-400 text-sm">
+              <p className="text-gray-300/80 text-sm">
                 New Haven Pickleball League - Building community through competitive play.
               </p>
             </div>
             <div>
               <h4 className="font-bold mb-4">League Coordinator</h4>
-              <p className="text-gray-400 text-sm mb-2">
+              <p className="text-gray-300/80 text-sm mb-2">
                 <strong>Chloe Shevlin</strong>
               </p>
-              <a href="mailto:nhvpickleball@gmail.com" className="text-primary-400 hover:text-primary-300 text-sm">
+              <a href="mailto:nhvpickleball@gmail.com" className="text-primary-300 hover:text-primary-200 text-sm">
                 nhvpickleball@gmail.com
               </a>
             </div>
@@ -333,27 +339,36 @@ export default async function HomePage() {
               <h4 className="font-bold mb-4">Connect With Us</h4>
               <div className="flex flex-col gap-2 text-sm">
                 <a href="https://nhvpickleball.com" target="_blank" rel="noopener noreferrer"
-                  className="text-primary-400 hover:text-primary-300">
+                  className="text-primary-300 hover:text-primary-200">
                   Website: nhvpickleball.com
                 </a>
                 <a href="https://instagram.com/nhvpbleague" target="_blank" rel="noopener noreferrer"
-                  className="text-primary-400 hover:text-primary-300">
+                  className="text-primary-300 hover:text-primary-200">
                   Instagram: @nhvpbleague
                 </a>
                 <a href="https://facebook.com/groups/EastRockPickleball" target="_blank" rel="noopener noreferrer"
-                  className="text-primary-400 hover:text-primary-300">
+                  className="text-primary-300 hover:text-primary-200">
                   Facebook: East Rock Pickleball
                 </a>
               </div>
             </div>
           </div>
-          <div className="border-t border-gray-800 pt-8">
-            <p className="text-center text-gray-400 text-sm">
+          <div className="border-t border-white/10 pt-8">
+            <p className="text-center text-gray-300/70 text-sm">
               © {new Date().getFullYear()} New Haven Pickleball League. All rights reserved.
             </p>
           </div>
         </div>
       </footer>
     </div>
+  );
+}
+
+// Simple maple-style leaf silhouette used for the seasonal hero/CTA accents.
+function FallLeaf({ className = '', ...rest }: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 100 100" fill="currentColor" className={className} {...rest}>
+      <path d="M50 4c3 9 9 15 16 19-3 2-6 3-9 3 6 6 14 9 24 9-4 4-9 6-14 7 7 4 13 10 17 18-8-1-15-4-21-8l2 20c-2-1-4-3-5-5l-5 30c-1 2-3 2-4 0l-5-30c-1 2-3 4-5 5l2-20c-6 4-13 7-21 8 4-8 10-14 17-18-5-1-10-3-14-7 10 0 18-3 24-9-3 0-6-1-9-3 7-4 13-10 16-19z" />
+    </svg>
   );
 }

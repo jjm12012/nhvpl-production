@@ -119,9 +119,9 @@ export default function RegistrationFormPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
+    <div className="flex flex-col min-h-screen bg-paper">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200">
+      <header className="bg-paper/90 backdrop-blur border-b border-primary-100">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <Link href="/register" className="text-primary-600 hover:text-primary-700 font-medium inline-flex items-center gap-2">
             <ArrowLeft className="w-4 h-4" />

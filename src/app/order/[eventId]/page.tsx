@@ -125,7 +125,7 @@ export default function OrderFormPage() {
 
   if (fetchState === 'loading') {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+      <div className="flex items-center justify-center min-h-screen bg-paper">
         <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
       </div>
     );
@@ -133,7 +133,7 @@ export default function OrderFormPage() {
 
   if (fetchState === 'not_found' || !event) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 px-4">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-paper px-4">
         <AlertCircle className="w-10 h-10 text-gray-400 mb-4" />
         <h1 className="text-xl font-semibold text-gray-900 mb-2">Order form not found</h1>
         <p className="text-gray-600 mb-6">This order link may be invalid or no longer available.</p>
@@ -144,7 +144,7 @@ export default function OrderFormPage() {
 
   if (!event.isOpen || event.products.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 px-4">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-paper px-4">
         <ShoppingBag className="w-10 h-10 text-gray-400 mb-4" />
         <h1 className="text-xl font-semibold text-gray-900 mb-2">Orders are closed</h1>
         <p className="text-gray-600 mb-6 text-center max-w-md">
@@ -157,7 +157,7 @@ export default function OrderFormPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
+    <div className="flex flex-col min-h-screen bg-paper">
       <main className="flex-1 max-w-2xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">{event.name}</h1>

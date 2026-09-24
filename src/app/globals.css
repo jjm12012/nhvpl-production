@@ -2,9 +2,75 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ------------------------------------------------------------------
+   Theme tokens. The public site defaults to the autumn palette below;
+   the admin area wraps itself in `.theme-admin` to keep the original
+   blue/green. Values are RGB triplets consumed by tailwind.config.ts.
+   ------------------------------------------------------------------ */
 @layer base {
+  :root {
+    /* Primary — burnt orange / amber */
+    --primary-50: 253 246 236;
+    --primary-100: 251 233 208;
+    --primary-200: 246 208 160;
+    --primary-300: 239 176 106;
+    --primary-400: 230 138 58;
+    --primary-500: 217 103 31;
+    --primary-600: 194 79 20;
+    --primary-700: 161 59 18;
+    --primary-800: 130 48 22;
+    --primary-900: 107 41 20;
+
+    /* Accent — forest / olive green */
+    --accent-50: 242 246 238;
+    --accent-100: 226 235 216;
+    --accent-200: 197 215 179;
+    --accent-300: 160 188 134;
+    --accent-400: 124 158 95;
+    --accent-500: 95 130 68;
+    --accent-600: 73 103 53;
+    --accent-700: 58 81 44;
+    --accent-800: 48 66 37;
+    --accent-900: 40 55 32;
+  }
+
+  .theme-admin {
+    --primary-50: 239 246 255;
+    --primary-100: 219 234 254;
+    --primary-200: 191 219 254;
+    --primary-300: 147 197 253;
+    --primary-400: 96 165 250;
+    --primary-500: 59 130 246;
+    --primary-600: 37 99 235;
+    --primary-700: 29 78 216;
+    --primary-800: 30 64 175;
+    --primary-900: 30 58 138;
+
+    --accent-50: 240 253 244;
+    --accent-100: 220 252 231;
+    --accent-200: 187 247 208;
+    --accent-300: 134 239 172;
+    --accent-400: 74 222 128;
+    --accent-500: 34 197 94;
+    --accent-600: 22 163 74;
+    --accent-700: 21 128 61;
+    --accent-800: 22 101 52;
+    --accent-900: 20 82 49;
+  }
+
   body {
-    @apply bg-white text-gray-900;
+    @apply bg-paper text-gray-900 antialiased;
+  }
+
+  /* Public-site headings use the serif display face; admin stays sans. */
+  h1, h2, h3 {
+    @apply font-display tracking-tight;
+  }
+  .theme-admin h1, .theme-admin h2, .theme-admin h3 {
+    @apply font-sans tracking-normal;
+  }
+  .theme-admin {
+    @apply bg-gray-100;
   }
 }
 
@@ -14,7 +80,7 @@
   }
 
   .btn-primary {
-    @apply btn bg-primary-600 text-white hover:bg-primary-700 active:scale-95;
+    @apply btn bg-primary-600 text-white shadow-warm hover:bg-primary-700 hover:shadow-lg active:scale-95;
   }
 
   .btn-secondary {
@@ -26,14 +92,22 @@
   }
 
   .card {
-    @apply rounded-lg border border-gray-200 bg-white shadow-sm;
+    @apply rounded-xl border border-gray-200 bg-white shadow-warm;
   }
 
   .input {
-    @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all;
+    @apply w-full px-3 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all;
   }
 
   .label {
     @apply block text-sm font-medium text-gray-700 mb-1;
+  }
+
+  /* Soft autumn texture for hero bands: layered radial glows */
+  .hero-autumn {
+    background-image:
+      radial-gradient(60% 80% at 15% 10%, rgb(239 176 106 / 0.35), transparent 60%),
+      radial-gradient(50% 70% at 85% 90%, rgb(107 41 20 / 0.55), transparent 60%),
+      linear-gradient(135deg, rgb(var(--primary-800)) 0%, rgb(var(--primary-600)) 55%, rgb(var(--primary-400)) 100%);
   }
 }
